@@ -39,6 +39,9 @@
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
+        .assignments {
+            padding: 20px;
+        }
         .assignments a {
             display: block;
             margin: 10px 0;
@@ -54,10 +57,8 @@
 <body>
     <header>MAHEDI's Landing Page</header>
     <nav>
-        <a onclick="showInfo('bachelor')">Bachelor's Information</a>
-        <a onclick="showInfo('master')">Master's Information</a>
-        <a onclick="showInfo('result')">Result Site</a>
-        <a onclick="showInfo('scholarship')">Scholarship Site</a>
+        <a href="javascript:void(0);" onclick="showAssignments()">View Assignments</a>
+        <a href="javascript:void(0);" onclick="showSubmitForm()">Submit Assignment</a>
     </nav>
     <div class="hero">
         <h1>Welcome to My Website</h1>
@@ -68,26 +69,40 @@
         <h2>Information Section</h2>
         <p>Select a menu option to view details.</p>
     </div>
-    <div class="assignments">
+    <div class="assignments" id="assignmentsSection" style="display:none;">
         <h2>Assignments</h2>
-        <a href="https://youtu.be/fRv5rfHpkO4?si=ovCUg0IpihFHWnA0" target="_blank">Assignment 1</a>
-        <a href="#">Assignment 2</a>
-        <a href="#">Assignment 3</a>
+        <a href="#" download>Sample Assignment 1</a>
+        <a href="#" download>Sample Assignment 2</a>
+        <a href="#" download>Sample Assignment 3</a>
+    </div>
+    <div class="content" id="submitForm" style="display:none;">
+        <h2>Submit Your Assignment</h2>
+        <input type="file" id="fileInput">
+        <button onclick="submitAssignment()">Submit</button>
+        <p id="submissionMessage"></p>
     </div>
     <script>
         function showMessage() {
             alert("Hello! Thanks for visiting.");
         }
-        function showInfo(type) {
-            let info = document.getElementById("info");
-            if (type === "bachelor") {
-                info.innerHTML = "<h2>Bachelor's Information</h2><p>Admission Fee: 990 Won, Date: 19th December</p>";
-            } else if (type === "master") {
-                info.innerHTML = "<h2>Master's Information</h2><p>CGPA: 3.99 (Must be), Admission Fee: 1190 Won</p>";
-            } else if (type === "result") {
-                info.innerHTML = "<h2>Result Site</h2><p>MAHEDI: 4.29, JOY: 3.98, ROHAN: 4.07</p>";
-            } else if (type === "scholarship") {
-                info.innerHTML = "<h2>Scholarship Site</h2><p>CGPA 4.00 = 50%, CGPA 4.20 = 60%</p>";
+        function showAssignments() {
+            document.getElementById("assignmentsSection").style.display = "block";
+            document.getElementById("submitForm").style.display = "none";
+            document.getElementById("info").style.display = "none";
+        }
+        function showSubmitForm() {
+            document.getElementById("assignmentsSection").style.display = "none";
+            document.getElementById("submitForm").style.display = "block";
+            document.getElementById("info").style.display = "none";
+        }
+        function submitAssignment() {
+            const fileInput = document.getElementById("fileInput");
+            const message = document.getElementById("submissionMessage");
+            if (fileInput.files.length === 0) {
+                message.textContent = "Please select a file to submit.";
+            } else {
+                message.textContent = "Assignment submitted successfully!";
+                fileInput.value = ""; // Clear the input
             }
         }
     </script>
