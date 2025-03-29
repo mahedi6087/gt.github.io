@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Landing Page</title>
+    <title>Assignment Submission Page</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -18,29 +18,12 @@
             padding: 15px;
             font-size: 24px;
         }
-        nav {
-            background: #444;
-            padding: 10px;
-        }
-        nav a {
-            color: white;
-            text-decoration: none;
-            margin: 15px;
-            font-size: 18px;
-            cursor: pointer;
-        }
-        nav a:hover {
-            text-decoration: underline;
-        }
         .content {
             padding: 20px;
             background: #fff;
             margin: 20px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .assignments {
-            padding: 20px;
         }
         .assignments a {
             display: block;
@@ -52,58 +35,45 @@
         .assignments a:hover {
             text-decoration: underline;
         }
+        .upload-section {
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
-    <header>MAHEDI's Landing Page</header>
-    <nav>
-        <a href="javascript:void(0);" onclick="showAssignments()">View Assignments</a>
-        <a href="javascript:void(0);" onclick="showSubmitForm()">Submit Assignment</a>
-    </nav>
-    <div class="hero">
-        <h1>Welcome to My Website</h1>
-        <p>This is a simple landing page.</p>
-        <button onclick="showMessage()">Click Me</button>
-    </div>
-    <div id="info" class="content">
-        <h2>Information Section</h2>
-        <p>Select a menu option to view details.</p>
-    </div>
-    <div class="assignments" id="assignmentsSection" style="display:none;">
-        <h2>Assignments</h2>
-        <a href="#" download>Sample Assignment 1</a>
-        <a href="#" download>Sample Assignment 2</a>
-        <a href="#" download>Sample Assignment 3</a>
-    </div>
-    <div class="content" id="submitForm" style="display:none;">
+    <header>Assignment Submission Page</header>
+    <div class="content">
         <h2>Submit Your Assignment</h2>
         <input type="file" id="fileInput">
-        <button onclick="submitAssignment()">Submit</button>
-        <p id="submissionMessage"></p>
+        <button onclick="uploadAssignment()">Submit</button>
+        <p id="uploadStatus"></p>
+    </div>
+    <div class="assignments">
+        <h2>Submitted Assignments</h2>
+        <div id="assignmentList">
+            <p>No assignments submitted yet.</p>
+        </div>
     </div>
     <script>
-        function showMessage() {
-            alert("Hello! Thanks for visiting.");
-        }
-        function showAssignments() {
-            document.getElementById("assignmentsSection").style.display = "block";
-            document.getElementById("submitForm").style.display = "none";
-            document.getElementById("info").style.display = "none";
-        }
-        function showSubmitForm() {
-            document.getElementById("assignmentsSection").style.display = "none";
-            document.getElementById("submitForm").style.display = "block";
-            document.getElementById("info").style.display = "none";
-        }
-        function submitAssignment() {
-            const fileInput = document.getElementById("fileInput");
-            const message = document.getElementById("submissionMessage");
+        function uploadAssignment() {
+            let fileInput = document.getElementById("fileInput");
+            let status = document.getElementById("uploadStatus");
+            let assignmentList = document.getElementById("assignmentList");
+            
             if (fileInput.files.length === 0) {
-                message.textContent = "Please select a file to submit.";
-            } else {
-                message.textContent = "Assignment submitted successfully!";
-                fileInput.value = ""; // Clear the input
+                status.innerHTML = "Please select a file to submit.";
+                return;
             }
+            
+            let fileName = fileInput.files[0].name;
+            let newAssignment = document.createElement("p");
+            newAssignment.innerHTML = `<a href="#" target="_blank">${fileName}</a>`;
+            
+            if (assignmentList.innerHTML.includes("No assignments submitted yet.")) {
+                assignmentList.innerHTML = "";
+            }
+            assignmentList.appendChild(newAssignment);
+            status.innerHTML = "Assignment submitted successfully!";
         }
     </script>
 </body>
