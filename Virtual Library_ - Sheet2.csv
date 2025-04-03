@@ -1,0 +1,51 @@
+book_ID,Title,author_ID,genre_ID,Publication_Date,Available,Last_Checkout_Date
+1,Pride and Prejudice,1,1,1813,TRUE,2025-03-20
+2,Moby Dick,2,1,1851,TRUE,2025-03-18
+3,1984,3,1,1949,FALSE,2025-03-10
+4,To Kill a Mockingbird,4,1,1960,TRUE,2025-03-15
+5,The Great Gatsby,5,1,1925,FALSE,2025-03-05
+6,Charlotte’s Web,6,2,1952,TRUE,2025-03-22
+7,The Very Hungry Caterpillar,7,2,1969,TRUE,2025-03-25
+8,Matilda,8,2,1988,FALSE,2025-03-11
+9,Where the Wild Things Are,9,2,1963,TRUE,2025-03-24
+10,Goodnight Moon,10,2,1947,TRUE,2025-03-21
+11,Harry Potter and the Sorcerer’s Stone,11,3,1997,FALSE,2025-03-08
+12,The Hunger Games,12,3,2008,TRUE,2025-03-19
+13,Eragon,13,3,2002,TRUE,2025-03-23
+14,Percy Jackson: The Lightning Thief,14,3,2005,FALSE,2025-03-14
+15,A Wrinkle in Time,15,3,1962,TRUE,2025-03-17
+16,The Girl with the Dragon Tattoo,16,4,2005,FALSE,2025-03-12
+17,Gone Girl,17,4,2012,TRUE,2025-03-16
+18,The Da Vinci Code,18,4,2003,TRUE,2025-03-21
+19,And Then There Were None,19,4,1939,FALSE,2025-03-07
+20,The Silence of the Lambs,20,4,1988,TRUE,2025-03-25
+21,Dune,21,5,1965,FALSE,2025-03-09
+22,Ender’s Game,22,5,1985,TRUE,2025-03-18
+23,Snow Crash,23,5,1992,TRUE,2025-03-22
+24,Neuromancer,24,5,1984,FALSE,2025-03-13
+25,The Left Hand of Darkness,25,5,1969,TRUE,2025-03-20
+26,Sapiens: A Brief History of Humankind,26,6,2011,TRUE,2025-03-26
+27,Educated,27,6,2018,FALSE,2025-03-15
+28,The Immortal Life of Henrietta Lacks,28,6,2010,TRUE,2025-03-19
+29,Atomic Habits,29,6,2018,TRUE,2025-03-24
+30,Outliers,30,6,2008,FALSE,2025-03-10
+31,Meditations,31,7,180,TRUE,2025-03-17
+32,The Art of War,32,7,-500,FALSE,2025-03-11
+33,The Subtle Art of Not Giving a Fck,33,7,2016,TRUE,2025-03-21
+34,Man’s Search for Meaning,34,7,1946,FALSE,2025-03-06
+35,Thinking,35,7,2011,TRUE,2025-03-23
+36,Me Before You,36,8,2012,FALSE,2025-03-14
+37,The Notebook,37,8,1996,TRUE,2025-03-25
+38,It Ends With Us,38,8,2016,FALSE,2025-03-09
+39,Outlander,39,8,1991,TRUE,2025-03-18
+40,The Time Traveler’s Wife,40,8,2003,TRUE,2025-03-22
+41,The Alchemist,41,9,1988,TRUE,2025-03-26
+42,Kafka on the Shore,42,9,2002,FALSE,2025-03-13
+43,One Hundred Years of Solitude,43,9,1967,TRUE,2025-03-21
+44,The Shadow of the Wind,44,9,2001,TRUE,2025-03-24
+45,Pachinko,45,9,2017,FALSE,2025-03-10
+46,The Midnight Library,46,10,2020,TRUE,2025-03-23
+47,Where the Crawdads Sing,47,10,2018,FALSE,2025-03-07
+48,The Seven Husbands of Evelyn Hugo,48,10,2017,TRUE,2025-03-19
+49,Project Hail Mary,49,10,2021,TRUE,2025-03-25
+50,Tomorrow,50,10,2022,FALSE,2025-03-12
