@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assignment Submission Page</title>
+    <title>Assignment Submission and Grades</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -25,6 +25,13 @@
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
+        .assignments, .grades {
+            margin: 20px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
         .assignments a {
             display: block;
             margin: 10px 0;
@@ -35,25 +42,60 @@
         .assignments a:hover {
             text-decoration: underline;
         }
-        .upload-section {
-            margin-top: 20px;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+        }
+        #averagePercentage {
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 18px;
         }
     </style>
 </head>
 <body>
-    <header>Assignment Submission Page</header>
+    <header>Assignment Submission and Grades</header>
+    
     <div class="content">
         <h2>Submit Your Assignment</h2>
         <input type="file" id="fileInput">
         <button onclick="uploadAssignment()">Submit</button>
         <p id="uploadStatus"></p>
     </div>
+
     <div class="assignments">
         <h2>Submitted Assignments</h2>
         <div id="assignmentList">
             <p>No assignments submitted yet.</p>
         </div>
     </div>
+
+    <div class="grades">
+        <h2>Grade Report</h2>
+        <table id="gradesTable">
+            <thead>
+                <tr>
+                    <th>Grade Name</th>
+                    <th>Type</th>
+                    <th>Received</th>
+                    <th>Max</th>
+                    <th>Percentage</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Grades will be inserted here -->
+            </tbody>
+        </table>
+        <div id="averagePercentage"></div>
+    </div>
+
     <script>
         function uploadAssignment() {
             let fileInput = document.getElementById("fileInput");
@@ -75,6 +117,55 @@
             assignmentList.appendChild(newAssignment);
             status.innerHTML = "Assignment submitted successfully!";
         }
+
+        // Hardcoded CSV data
+        const csvData = `
+Grade_ID,Grade_Name,grade_type,grade_received,max_grade,course_code
+1,week 2 - Find me!,assignments,2.75,3,DL
+2,week 3 - CLI,assignments,3,3,DL
+3,week 4 - quiz 1,quiz,2,3,DL
+4,week 4 - Virtual Library,assignments,2.5,3,DL
+5,week 5 - Idea Sourcing,assignments,3,3,DL
+6,week 6 - cryptography proj,project,8,10,DL
+7,week 7 - appscript,assignments,3,3,DL
+        `;
+
+        function loadGrades() {
+            let rows = csvData.trim().split('\n').slice(1); // skip header
+            let tableBody = document.querySelector("#gradesTable tbody");
+            let totalPercentage = 0;
+            let count = 0;
+            tableBody.innerHTML = "";
+
+            rows.forEach(row => {
+                let cols = row.split(',');
+                let gradeName = cols[1];
+                let gradeType = cols[2];
+                let gradeReceived = parseFloat(cols[3]);
+                let maxGrade = parseFloat(cols[4]);
+                let percentage = ((gradeReceived / maxGrade) * 100).toFixed(2);
+
+                totalPercentage += parseFloat(percentage);
+                count++;
+
+                let newRow = document.createElement("tr");
+                newRow.innerHTML = `
+                    <td>${gradeName}</td>
+                    <td>${gradeType}</td>
+                    <td>${gradeReceived}</td>
+                    <td>${maxGrade}</td>
+                    <td>${percentage}%</td>
+                `;
+                tableBody.appendChild(newRow);
+            });
+
+            // Calculate and display average percentage
+            let average = (totalPercentage / count).toFixed(2);
+            document.getElementById("averagePercentage").innerText = `Overall Average Percentage: ${average}%`;
+        }
+
+        // Load grades when the page loads
+        window.onload = loadGrades;
     </script>
 </body>
 </html>
