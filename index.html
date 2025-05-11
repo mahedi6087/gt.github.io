@@ -3,98 +3,170 @@
 <head>
   <meta charset="UTF-8">
   <title>হালাল ফয়সাল</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Vanta.js and Three.js for 3D background -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
   <style>
-    body, html {
+    /* Reset and base styles */
+    * {
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
+    }
+
+    body, html {
       height: 100%;
-      font-family: 'Segoe UI', sans-serif;
-      background: url('52b652d063dffb38a056db0e2a07a152.jpeg') no-repeat center center fixed;
-      background-size: cover;
-      color: white;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #fff;
       overflow: hidden;
     }
-    .overlay {
-      position: absolute;
+
+    /* Background container */
+    #background {
+      position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 1;
+      z-index: -2;
     }
+
+    /* Overlay for background image */
+    #overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('52b652d063dffb38a056db0e2a07a152.jpeg') no-repeat center center/cover;
+      opacity: 0.3;
+      z-index: -1;
+    }
+
+    /* Header */
     header {
-      position: relative;
-      z-index: 2;
       text-align: center;
-      padding: 50px 0;
-      font-size: 3em;
+      padding: 2rem;
+      font-size: 2.5rem;
       font-weight: bold;
+      background-color: rgba(0, 0, 0, 0.5);
     }
+
+    /* Navigation buttons */
     nav {
-      position: relative;
-      z-index: 2;
-      text-align: center;
-      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin: 2rem 0;
     }
-    nav button {
-      margin: 10px;
-      padding: 15px 25px;
-      font-size: 1em;
-      cursor: pointer;
+
+    nav a {
+      padding: 1rem 2rem;
+      background-color: rgba(255, 255, 255, 0.2);
       border: none;
       border-radius: 5px;
-      background-color: #1abc9c;
-      color: white;
+      color: #fff;
+      text-decoration: none;
+      font-size: 1.2rem;
       transition: background-color 0.3s;
     }
-    nav button:hover {
-      background-color: #16a085;
+
+    nav a:hover {
+      background-color: rgba(255, 255, 255, 0.4);
     }
-    .upload-form {
-      position: relative;
-      z-index: 2;
+
+    /* Upload form */
+    .upload-section {
       text-align: center;
-      margin-top: 40px;
+      margin: 2rem;
     }
-    .upload-form input[type="file"] {
-      margin: 10px 0;
+
+    .upload-section form {
+      display: inline-block;
+      background-color: rgba(0, 0, 0, 0.5);
+      padding: 1.5rem;
+      border-radius: 10px;
     }
-    audio {
-      position: relative;
-      z-index: 2;
-      display: block;
-      margin: 30px auto;
+
+    .upload-section input[type="file"] {
+      margin-bottom: 1rem;
+      color: #fff;
     }
-    #vanta-bg {
-      width: 100%;
-      height: 100%;
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 0;
+
+    .upload-section input[type="submit"] {
+      padding: 0.5rem 1rem;
+      background-color: rgba(255, 255, 255, 0.2);
+      border: none;
+      border-radius: 5px;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .upload-section input[type="submit"]:hover {
+      background-color: rgba(255, 255, 255, 0.4);
+    }
+
+    /* Audio player */
+    .audio-player {
+      position: fixed;
+      bottom: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(0, 0, 0, 0.5);
+      padding: 0.5rem 1rem;
+      border-radius: 10px;
     }
   </style>
 </head>
 <body>
-  <div id="vanta-bg"></div>
-  <div class="overlay"></div>
+  <!-- 3D Background -->
+  <div id="background"></div>
+  <!-- Background Image Overlay -->
+  <div id="overlay"></div>
+
+  <!-- Header -->
   <header>হালাল ফয়সাল</header>
+
+  <!-- Navigation Buttons -->
   <nav>
-    <button onclick="alert('Foysal Photo button clicked!')">Foysal Photo</button>
-    <button onclick="window.open('https://www.facebook.com/share/1AZVrsZVbX/?mibextid=wwXIfr', '_blank')">Tazrin</button>
-    <button onclick="window.open('https://www.facebook.com/share/1C3uahirbb/?mibextid=wwXIfr', '_blank')">Nova</button>
+    <a href="#foysal-photo">Foysal Photo</a>
+    <a href="https://www.facebook.com/share/1AZVrsZVbX/?mibextid=wwXIfr" target="_blank">Tazrin</a>
+    <a href="https://www.facebook.com/share/1C3uahirbb/?mibextid=wwXIfr" target="_blank">Nova</a>
   </nav>
-  <div class="upload-form">
-    <form action="/upload" method="post" enctype="multipart/form-data">
-      <label for="fileUpload">ছবি আপলোড করুন:</label><br>
-      <input type="file" id="fileUpload" name="fileUpload" accept="image/*"><br>
-      <input type="submit" value="আপলোড">
+
+  <!-- Upload Form -->
+  <div class="upload-section">
+    <h2>ছবি আপলোড করুন</h2>
+    <form action="upload.php" method="post" enctype="multipart/form-data">
+      <input type="file" name="fileToUpload" accept="image/*" required><br>
+      <input type="submit" value="আপলোড করুন">
     </form>
   </div>
-  <audio controls autoplay loop>
-    <source src="your-bangla-song.mp3" type="audio/mpeg">
-    আপনার ব্রাউজার অডিও প্লেয়ার সমর্থন করে না।
-  </audio>
 
-  <!-- Vanta.js and Three.js Scripts -->
+  <!-- Audio Player -->
+  <div class="audio-player">
+    <audio controls autoplay loop>
+      <source src="song.mp3" type="audio/mpeg">
+      আপনার ব্রাউজার অডিও প্লেয়ার সমর্থন করে না।
+    </audio>
+  </div>
+
+  <!-- Initialize Vanta.js -->
+  <script>
+    VANTA.NET({
+      el: "#background",
+      mouseControls: true,
+      touchControls: true,
+      gyroControls: false,
+      minHeight: 200.00,
+      minWidth: 200.00,
+      scale: 1.00,
+      scaleMobile: 1.00,
+      color: 0xff3f81,
+      backgroundColor: 0x0
+    });
+  </script>
+</body>
+</html>
