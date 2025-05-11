@@ -3,135 +3,98 @@
 <head>
   <meta charset="UTF-8">
   <title>হালাল ফয়সাল</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali&display=swap" rel="stylesheet">
   <style>
-    * {
+    body, html {
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
-      font-family: 'Noto Sans Bengali', sans-serif;
-    }
-
-    body {
+      height: 100%;
+      font-family: 'Segoe UI', sans-serif;
       background: url('52b652d063dffb38a056db0e2a07a152.jpeg') no-repeat center center fixed;
       background-size: cover;
+      color: white;
       overflow: hidden;
-      color: white;
     }
-
     .overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(5px);
-      z-index: -1;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1;
     }
-
     header {
+      position: relative;
+      z-index: 2;
       text-align: center;
-      padding: 40px 20px;
+      padding: 50px 0;
       font-size: 3em;
-      text-shadow: 0 0 20px #00ffcc;
-      animation: glow 2s infinite alternate;
+      font-weight: bold;
     }
-
-    @keyframes glow {
-      0% { text-shadow: 0 0 10px #00ffcc; }
-      100% { text-shadow: 0 0 30px #00ffee, 0 0 60px #00ffee; }
-    }
-
-    .sidebar {
-      position: fixed;
-      top: 50%;
-      left: 20px;
-      transform: translateY(-50%);
-      background: rgba(255, 255, 255, 0.1);
-      padding: 20px;
-      border-radius: 20px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 0 15px #00ffffaa;
-    }
-
-    .sidebar button, .sidebar input {
-      display: block;
-      width: 180px;
-      margin: 10px auto;
-      padding: 12px;
-      border: none;
-      border-radius: 10px;
-      background: #00ffff22;
-      color: white;
-      font-size: 1em;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .sidebar button:hover {
-      background: #00ffffcc;
-      transform: scale(1.05);
-    }
-
-    .upload-area {
+    nav {
+      position: relative;
+      z-index: 2;
+      text-align: center;
       margin-top: 20px;
     }
-
-    .photo-gallery {
-      position: absolute;
-      bottom: 30px;
-      left: 20px;
-      width: calc(100% - 40px);
-      display: flex;
-      gap: 10px;
-      overflow-x: auto;
-      padding: 10px;
+    nav button {
+      margin: 10px;
+      padding: 15px 25px;
+      font-size: 1em;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      background-color: #1abc9c;
+      color: white;
+      transition: background-color 0.3s;
     }
-
-    .photo-gallery img {
-      height: 100px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px #fff;
+    nav button:hover {
+      background-color: #16a085;
     }
-
+    .upload-form {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      margin-top: 40px;
+    }
+    .upload-form input[type="file"] {
+      margin: 10px 0;
+    }
     audio {
-      display: none;
+      position: relative;
+      z-index: 2;
+      display: block;
+      margin: 30px auto;
+    }
+    #vanta-bg {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
     }
   </style>
 </head>
 <body>
+  <div id="vanta-bg"></div>
   <div class="overlay"></div>
   <header>হালাল ফয়সাল</header>
-
-  <div class="sidebar">
-    <button onclick="alert('ফয়সালের ছবি দেখা যাচ্ছে না!')">Foysal Photo</button>
+  <nav>
+    <button onclick="alert('Foysal Photo button clicked!')">Foysal Photo</button>
     <button onclick="window.open('https://www.facebook.com/share/1AZVrsZVbX/?mibextid=wwXIfr', '_blank')">Tazrin</button>
     <button onclick="window.open('https://www.facebook.com/share/1C3uahirbb/?mibextid=wwXIfr', '_blank')">Nova</button>
-    
-    <div class="upload-area">
-      <label for="photo-upload">ছবি জমা দিন:</label>
-      <input type="file" id="photo-upload" accept="image/*" onchange="previewImage(event)">
-    </div>
+  </nav>
+  <div class="upload-form">
+    <form action="/upload" method="post" enctype="multipart/form-data">
+      <label for="fileUpload">ছবি আপলোড করুন:</label><br>
+      <input type="file" id="fileUpload" name="fileUpload" accept="image/*"><br>
+      <input type="submit" value="আপলোড">
+    </form>
   </div>
-
-  <div class="photo-gallery" id="gallery"></div>
-
-  <audio autoplay loop>
-    <source src="bangla-song.mp3" type="audio/mpeg">
-    আপনার ব্রাউজার অডিও ফাইল সমর্থন করে না।
+  <audio controls autoplay loop>
+    <source src="your-bangla-song.mp3" type="audio/mpeg">
+    আপনার ব্রাউজার অডিও প্লেয়ার সমর্থন করে না।
   </audio>
 
-  <script>
-    function previewImage(event) {
-      const file = event.target.files[0];
-      if (file && file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const img = document.createElement('img');
-          img.src = e.target.result;
-          document.getElementById('gallery').appendChild(img);
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-  </script>
-</body>
-</html>
+  <!-- Vanta.js and Three.js Scripts -->
