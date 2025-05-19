@@ -1,157 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Weather + Scrolling Jokes</title>
+  <meta charset="UTF-8">
+  <title>Live Weather App</title>
   <style>
-    /* Full screen background video */
-    body, html {
-      margin: 0; padding: 0; height: 100%;
-      font-family: Arial, sans-serif;
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #4facfe, #00f2fe);
+      color: #fff;
+      text-align: center;
+      padding: 50px;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 1em;
+      border-radius: 5px;
+      border: none;
+      margin: 10px;
+    }
+    input {
+      width: 200px;
+    }
+    button {
+      background-color: #0066cc;
       color: white;
-      overflow: hidden;
-      background: black;
-    }
-    #bg-video {
-      position: fixed;
-      right: 0; bottom: 0;
-      min-width: 100%; min-height: 100%;
-      z-index: -1;
-      object-fit: cover;
-      filter: brightness(0.6);
-    }
-    .overlay {
-      position: relative;
-      z-index: 1;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 20px;
-      background: rgba(0,0,0,0.3);
-    }
-    header {
-      background: rgba(0,0,0,0.5);
-      padding: 10px 20px;
-      border-radius: 8px;
-      max-width: 300px;
+      cursor: pointer;
     }
     #weather {
-      font-size: 18px;
-      display: flex;
-      align-items: center;
-    }
-    #weather img {
-      width: 40px;
-      margin-right: 10px;
-    }
-    main {
-      flex-grow: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    #joke-container {
-      max-width: 600px;
-      background: rgba(0,0,0,0.6);
-      border-radius: 12px;
-      padding: 30px;
-      font-size: 24px;
-      text-align: center;
-      line-height: 1.4;
-      box-shadow: 0 0 15px rgba(255,255,255,0.2);
-      min-height: 150px;
-      transition: opacity 1s ease-in-out;
-      opacity: 1;
+      margin-top: 30px;
+      font-size: 1.3em;
+      background: rgba(255,255,255,0.2);
+      padding: 20px;
+      border-radius: 10px;
     }
   </style>
 </head>
 <body>
-
-  <video autoplay muted loop id="bg-video" playsinline>
-    <source src="https://cdn.videvo.net/videvo_files/video/free/2018-08/small_watermarked/180803_02_Drone_04_preview.webm" type="video/webm" />
-    Your browser does not support the video tag.
-  </video>
-
-  <div class="overlay">
-    <header>
-      <div id="weather">Loading weather...</div>
-    </header>
-
-    <main>
-      <div id="joke-container">Loading jokes...</div>
-    </main>
-  </div>
+  <h1>Check Weather</h1>
+  <input type="text" id="city" placeholder="Enter city name" />
+  <button onclick="getWeather()">Get Weather</button>
+  <div id="weather"></div>
 
   <script>
-    // --- WEATHER PART ---
-    const weatherEl = document.getElementById('weather');
+    async function getWeather() {
+      const city = document.getElementById('city').value;
+      const apiKey = 'c79f22cf5f845c977589d3fcd5e95828';
+      const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
 
-    // OpenWeatherMap free API (replace YOUR_API_KEY with your actual key)
-    // For demo, using a public demo key with limited calls:
-    const apiKey = 'b6907d289e10d714a6e88b30761fae22'; // OpenWeatherMap demo key
-    const city = 'London';
-
-    async function fetchWeather() {
       try {
-        const res = await fetch(`https://openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`);
-        if (!res.ok) throw new Error('Weather fetch failed');
-        const data = await res.json();
+        const response = await fetch(url);
+        const data = await response.json();
 
-        const icon = data.weather[0].icon;
-        const temp = Math.round(data.main.temp);
-        const desc = data.weather[0].description;
-
-        weatherEl.innerHTML = `
-          <img src="https://openweathermap.org/img/wn/${icon}@2x.png" alt="weather icon" />
-          <div>
-            <strong>${city}</strong><br/>
-            ${temp}°C, ${desc}
-          </div>
-        `;
-      } catch(e) {
-        weatherEl.textContent = 'Failed to load weather.';
+        if (data.cod === 200) {
+          const temp = data.main.temp;
+          const description = data.weather[0].description;
+          document.getElementById('weather').innerHTML = 
+            `<strong>${city}</strong><br>${temp}°C, ${description}`;
+        } else {
+          document.getElementById('weather').innerText = `City not found.`;
+        }
+      } catch (error) {
+        document.getElementById('weather').innerText = `Error: ${error}`;
       }
     }
-
-    fetchWeather();
-
-    // --- JOKES PART ---
-    const jokeContainer = document.getElementById('joke-container');
-    let jokes = [];
-    let index = 0;
-
-    function showJoke(i) {
-      jokeContainer.style.opacity = 0;
-      setTimeout(() => {
-        jokeContainer.innerHTML = `
-          ${jokes[i].setup} <br/><br/>
-          <strong>${jokes[i].punchline}</strong>
-        `;
-        jokeContainer.style.opacity = 1;
-      }, 1000); // fade out/in transition
-    }
-
-    async function fetchJokes() {
-      try {
-        const res = await fetch('https://official-joke-api.appspot.com/random_ten');
-        if (!res.ok) throw new Error('Joke fetch failed');
-        jokes = await res.json();
-        showJoke(index);
-
-        setInterval(() => {
-          index = (index + 1) % jokes.length;
-          showJoke(index);
-        }, 6000); // change joke every 6 seconds
-      } catch(e) {
-        jokeContainer.textContent = 'Failed to load jokes.';
-      }
-    }
-
-    fetchJokes();
-
   </script>
-
 </body>
 </html>
