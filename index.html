@@ -2,92 +2,156 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Assignment Submission</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Weather + Scrolling Jokes</title>
   <style>
-    body {
+    /* Full screen background video */
+    body, html {
+      margin: 0; padding: 0; height: 100%;
       font-family: Arial, sans-serif;
-      background: #f2f2f2;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-    }
-    .week-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin-bottom: 20px;
-    }
-    .week-buttons button {
-      margin: 5px;
-      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
-      background-color: #4CAF50;
       color: white;
-      cursor: pointer;
-      border-radius: 5px;
+      overflow: hidden;
+      background: black;
     }
-    .week-buttons button:hover {
-      background-color: #45a049;
+    #bg-video {
+      position: fixed;
+      right: 0; bottom: 0;
+      min-width: 100%; min-height: 100%;
+      z-index: -1;
+      object-fit: cover;
+      filter: brightness(0.6);
     }
-    #assignmentList {
-      max-width: 600px;
-      margin: 0 auto;
-      background: white;
+    .overlay {
+      position: relative;
+      z-index: 1;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
       padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      background: rgba(0,0,0,0.3);
     }
-    #assignmentList h2 {
-      margin-top: 0;
+    header {
+      background: rgba(0,0,0,0.5);
+      padding: 10px 20px;
+      border-radius: 8px;
+      max-width: 300px;
     }
-    #assignmentList a {
-      display: block;
-      margin: 5px 0;
-      color: #0077ff;
-      text-decoration: underline;
+    #weather {
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+    }
+    #weather img {
+      width: 40px;
+      margin-right: 10px;
+    }
+    main {
+      flex-grow: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #joke-container {
+      max-width: 600px;
+      background: rgba(0,0,0,0.6);
+      border-radius: 12px;
+      padding: 30px;
+      font-size: 24px;
+      text-align: center;
+      line-height: 1.4;
+      box-shadow: 0 0 15px rgba(255,255,255,0.2);
+      min-height: 150px;
+      transition: opacity 1s ease-in-out;
+      opacity: 1;
     }
   </style>
 </head>
 <body>
-  <h1>Assignment Submissions</h1>
-  <div class="week-buttons" id="weekButtons"></div>
-  <div id="assignmentList">
-    <h2>Assignment Links</h2>
-    <div id="list"></div>
+
+  <video autoplay muted loop id="bg-video" playsinline>
+    <source src="https://cdn.videvo.net/videvo_files/video/free/2018-08/small_watermarked/180803_02_Drone_04_preview.webm" type="video/webm" />
+    Your browser does not support the video tag.
+  </video>
+
+  <div class="overlay">
+    <header>
+      <div id="weather">Loading weather...</div>
+    </header>
+
+    <main>
+      <div id="joke-container">Loading jokes...</div>
+    </main>
   </div>
 
   <script>
-    const assignmentData = {
-      "Week 1": ["https://example.com/assignment1"],
-      "Week 2": ["https://example.com/assignment2a", "https://example.com/assignment2b"],
-      "Week 3": ["https://example.com/assignment3"],
-      "Week 4": ["https://example.com/assignment4"],
-      "Week 5": ["https://example.com/assignment5"],
-      "Week 6": ["https://example.com/assignment6a", "https://example.com/assignment6b"],
-      "Week 7": ["https://example.com/assignment7"],
-      "Week 8": ["https://example.com/assignment8"],
-    };
+    // --- WEATHER PART ---
+    const weatherEl = document.getElementById('weather');
 
-    const weekButtonsContainer = document.getElementById("weekButtons");
-    const listDiv = document.getElementById("list");
+    // OpenWeatherMap free API (replace YOUR_API_KEY with your actual key)
+    // For demo, using a public demo key with limited calls:
+    const apiKey = 'b6907d289e10d714a6e88b30761fae22'; // OpenWeatherMap demo key
+    const city = 'London';
 
-    Object.keys(assignmentData).forEach(week => {
-      const button = document.createElement("button");
-      button.textContent = week;
-      button.onclick = () => {
-        listDiv.innerHTML = ""; // Clear existing list
-        assignmentData[week].forEach((link, index) => {
-          const entry = document.createElement("div");
-          entry.style.margin = "5px 0";
-          entry.innerHTML = `<a href="${link}" target="_blank">Assignment ${index + 1}</a>`;
-          listDiv.appendChild(entry);
-        });
-      };
-      weekButtonsContainer.appendChild(button);
-    });
+    async function fetchWeather() {
+      try {
+        const res = await fetch(`https://openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`);
+        if (!res.ok) throw new Error('Weather fetch failed');
+        const data = await res.json();
+
+        const icon = data.weather[0].icon;
+        const temp = Math.round(data.main.temp);
+        const desc = data.weather[0].description;
+
+        weatherEl.innerHTML = `
+          <img src="https://openweathermap.org/img/wn/${icon}@2x.png" alt="weather icon" />
+          <div>
+            <strong>${city}</strong><br/>
+            ${temp}°C, ${desc}
+          </div>
+        `;
+      } catch(e) {
+        weatherEl.textContent = 'Failed to load weather.';
+      }
+    }
+
+    fetchWeather();
+
+    // --- JOKES PART ---
+    const jokeContainer = document.getElementById('joke-container');
+    let jokes = [];
+    let index = 0;
+
+    function showJoke(i) {
+      jokeContainer.style.opacity = 0;
+      setTimeout(() => {
+        jokeContainer.innerHTML = `
+          ${jokes[i].setup} <br/><br/>
+          <strong>${jokes[i].punchline}</strong>
+        `;
+        jokeContainer.style.opacity = 1;
+      }, 1000); // fade out/in transition
+    }
+
+    async function fetchJokes() {
+      try {
+        const res = await fetch('https://official-joke-api.appspot.com/random_ten');
+        if (!res.ok) throw new Error('Joke fetch failed');
+        jokes = await res.json();
+        showJoke(index);
+
+        setInterval(() => {
+          index = (index + 1) % jokes.length;
+          showJoke(index);
+        }, 6000); // change joke every 6 seconds
+      } catch(e) {
+        jokeContainer.textContent = 'Failed to load jokes.';
+      }
+    }
+
+    fetchJokes();
+
   </script>
+
 </body>
 </html>
