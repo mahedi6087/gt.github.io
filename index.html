@@ -1,15 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Advanced Interactive Map</title>
+  <title>Global Map Search with Sidebar</title>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Leaflet & MarkerCluster CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
-
   <style>
     body {
       margin: 0;
@@ -52,13 +48,12 @@
 
     .location-item:hover {
       font-weight: bold;
-      text-decoration: underline;
     }
 
-    #searchBar {
+    #searchInput {
       width: 100%;
       padding: 8px;
-      margin-bottom: 15px;
+      margin-bottom: 10px;
       border: 1px solid #aaa;
       border-radius: 4px;
       box-sizing: border-box;
@@ -72,33 +67,31 @@
       border: none;
       cursor: pointer;
       border-radius: 5px;
+      width: 100%;
     }
   </style>
 </head>
 <body>
 
 <div id="sidebar">
-  <input type="text" id="searchBar" placeholder="Search location..." />
+  <input type="text" id="searchInput" placeholder="Search any location..." />
   <div id="locationList"></div>
   <button id="toggleDark">Toggle Dark Mode</button>
 </div>
 <div id="map"></div>
 
-<!-- Leaflet & Plugins -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
 
 <script>
-  const map = L.map('map').setView([23.8103, 90.4125], 7);
-  const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  const map = L.map('map').setView([23.8103, 90.4125], 6);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors'
   }).addTo(map);
 
-  const markers = L.markerClusterGroup();
   const locationList = document.getElementById('locationList');
-  const searchBar = document.getElementById('searchBar');
+  const searchInput = document.getElementById('searchInput');
   const toggleDark = document.getElementById('toggleDark');
-  let allLocations = [];
 
   const customIcon = L.icon({
     iconUrl: 'https://cdn-icons-png.flaticon.com/512/854/854878.png',
@@ -107,45 +100,64 @@
     popupAnchor: [0, -30]
   });
 
-  fetch('https://mocki.io/v1/5fa25d97-02f8-4c70-8129-373558e14a7f')
-    .then(response => response.json())
-    .then(data => {
-      allLocations = data;
-      updateList(data);
-      data.forEach((location, index) => {
-        const marker = L.marker([location.lat, location.lng], { icon: customIcon })
-          .bindPopup(`<strong>${location.name}</strong>`);
-        marker._id = index;
-        markers.addLayer(marker);
-      });
-      map.addLayer(markers);
-    })
-    .catch(err => {
-      locationList.innerHTML = `<p style="color:red;">Failed to load map data.</p>`;
-      console.error(err);
-    });
+  let searchMarker;
 
-  function updateList(locations) {
-    locationList.innerHTML = '';
-    locations.forEach((loc, idx) => {
-      const item = document.createElement('div');
-      item.className = 'location-item';
-      item.textContent = loc.name;
-      item.addEventListener('click', () => {
-        map.setView([loc.lat, loc.lng], 12);
-      });
-      locationList.appendChild(item);
-    });
-  }
+  searchInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      const query = searchInput.value.trim();
+      if (!query) return;
 
-  searchBar.addEventListener('input', () => {
-    const query = searchBar.value.toLowerCase();
-    const filtered = allLocations.filter(loc => loc.name.toLowerCase().includes(query));
-    updateList(filtered);
+      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
+        .then(res => res.json())
+        .then(results => {
+          if (results.length > 0) {
+            const place = results[0];
+            const lat = parseFloat(place.lat);
+            const lon = parseFloat(place.lon);
+
+            if (searchMarker) {
+              map.removeLayer(searchMarker);
+            }
+
+            searchMarker = L.marker([lat, lon], { icon: customIcon }).addTo(map)
+              .bindPopup(`<strong>${place.display_name}</strong>`)
+              .openPopup();
+
+            map.setView([lat, lon], 12);
+          } else {
+            alert('Location not found!');
+          }
+        })
+        .catch(err => console.error('Search error:', err));
+    }
   });
 
+  // Optional: Add some fixed locations to sidebar (like your mock API)
+  const staticLocations = [
+    { name: "Dhaka", lat: 23.8103, lng: 90.4125 },
+    { name: "Chittagong", lat: 22.3569, lng: 91.7832 },
+    { name: "Sylhet", lat: 24.8949, lng: 91.8687 },
+    { name: "Barisal", lat: 22.7010, lng: 90.3535 }
+  ];
+
+  staticLocations.forEach(loc => {
+    const marker = L.marker([loc.lat, loc.lng], { icon: customIcon })
+      .addTo(map)
+      .bindPopup(`<strong>${loc.name}</strong>`);
+
+    const item = document.createElement('div');
+    item.className = 'location-item';
+    item.textContent = loc.name;
+    item.addEventListener('click', () => {
+      map.setView([loc.lat, loc.lng], 10);
+      marker.openPopup();
+    });
+
+    locationList.appendChild(item);
+  });
+
+  // Dark mode toggle
   toggleDark.addEventListener('click', () => {
-    document.body.classList.toggle('dark');
     document.getElementById('sidebar').classList.toggle('dark');
     document.getElementById('map').classList.toggle('dark');
   });
