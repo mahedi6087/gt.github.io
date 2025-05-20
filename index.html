@@ -1,167 +1,25 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Global Map Search with Sidebar</title>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+  <meta charset="UTF-8" />
+  <title>HalalFinder</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      transition: background 0.3s, color 0.3s;
-    }
-
-    #map {
-      height: 100vh;
-      width: 75%;
-      float: right;
-    }
-
-    #sidebar {
-      width: 25%;
-      height: 100vh;
-      overflow-y: auto;
-      float: left;
-      padding: 20px;
-      background: #f0f0f0;
-      border-right: 1px solid #ccc;
-      box-sizing: border-box;
-      transition: background 0.3s, color 0.3s;
-    }
-
-    #sidebar.dark {
-      background: #1e1e1e;
-      color: #eee;
-      border-color: #444;
-    }
-
-    #map.dark {
-      filter: invert(90%) hue-rotate(180deg);
-    }
-
-    .location-item {
-      margin-bottom: 10px;
-      cursor: pointer;
-    }
-
-    .location-item:hover {
-      font-weight: bold;
-    }
-
-    #searchInput {
-      width: 100%;
-      padding: 8px;
-      margin-bottom: 10px;
-      border: 1px solid #aaa;
-      border-radius: 4px;
-      box-sizing: border-box;
-    }
-
-    #toggleDark {
-      margin-top: 10px;
-      padding: 8px 15px;
-      background: #333;
-      color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-      width: 100%;
-    }
-  </style>
 </head>
 <body>
+  <h1>HalalFinder</h1>
+  <div class="controls">
+    <input type="text" id="searchBox" placeholder="Search city...">
+    <button onclick="searchPlace()">Search</button>
+    <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+  </div>
+  <div id="container">
+    <div id="sidebar"></div>
+    <div id="map"></div>
+  </div>
 
-<div id="sidebar">
-  <input type="text" id="searchInput" placeholder="Search any location..." />
-  <div id="locationList"></div>
-  <button id="toggleDark">Toggle Dark Mode</button>
-</div>
-<div id="map"></div>
-
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-<script>
-  const map = L.map('map').setView([23.8103, 90.4125], 6);
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
-  }).addTo(map);
-
-  const locationList = document.getElementById('locationList');
-  const searchInput = document.getElementById('searchInput');
-  const toggleDark = document.getElementById('toggleDark');
-
-  const customIcon = L.icon({
-    iconUrl: 'https://cdn-icons-png.flaticon.com/512/854/854878.png',
-    iconSize: [30, 30],
-    iconAnchor: [15, 30],
-    popupAnchor: [0, -30]
-  });
-
-  let searchMarker;
-
-  searchInput.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') {
-      const query = searchInput.value.trim();
-      if (!query) return;
-
-      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
-        .then(res => res.json())
-        .then(results => {
-          if (results.length > 0) {
-            const place = results[0];
-            const lat = parseFloat(place.lat);
-            const lon = parseFloat(place.lon);
-
-            if (searchMarker) {
-              map.removeLayer(searchMarker);
-            }
-
-            searchMarker = L.marker([lat, lon], { icon: customIcon }).addTo(map)
-              .bindPopup(`<strong>${place.display_name}</strong>`)
-              .openPopup();
-
-            map.setView([lat, lon], 12);
-          } else {
-            alert('Location not found!');
-          }
-        })
-        .catch(err => console.error('Search error:', err));
-    }
-  });
-
-  // Optional: Add some fixed locations to sidebar (like your mock API)
-  const staticLocations = [
-    { name: "Dhaka", lat: 23.8103, lng: 90.4125 },
-    { name: "Chittagong", lat: 22.3569, lng: 91.7832 },
-    { name: "Sylhet", lat: 24.8949, lng: 91.8687 },
-    { name: "Barisal", lat: 22.7010, lng: 90.3535 }
-  ];
-
-  staticLocations.forEach(loc => {
-    const marker = L.marker([loc.lat, loc.lng], { icon: customIcon })
-      .addTo(map)
-      .bindPopup(`<strong>${loc.name}</strong>`);
-
-    const item = document.createElement('div');
-    item.className = 'location-item';
-    item.textContent = loc.name;
-    item.addEventListener('click', () => {
-      map.setView([loc.lat, loc.lng], 10);
-      marker.openPopup();
-    });
-
-    locationList.appendChild(item);
-  });
-
-  // Dark mode toggle
-  toggleDark.addEventListener('click', () => {
-    document.getElementById('sidebar').classList.toggle('dark');
-    document.getElementById('map').classList.toggle('dark');
-  });
-</script>
-
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
