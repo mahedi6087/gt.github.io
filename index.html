@@ -1,23 +1,69 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Leaflet Map with Mock API</title>
+  <title>Interactive Leaflet Map with Mock API</title>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet & MarkerCluster CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+
   <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+      color: #333;
+      text-align: center;
+    }
+
+    h2 {
+      margin: 20px 0;
+    }
+
     #map {
       height: 500px;
-      width: 100%;
+      width: 90%;
+      margin: auto;
+      border: 3px solid #333;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    #loading {
+      position: absolute;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      padding: 10px 20px;
+      border: 2px solid #444;
+      border-radius: 5px;
+      font-weight: bold;
+      z-index: 1000;
+    }
+
+    #error {
+      color: red;
+      margin-top: 15px;
     }
   </style>
 </head>
 <body>
 
 <h2>Dynamic Map from Your API</h2>
+<div id="loading">Loading map data...</div>
 <div id="map"></div>
+<div id="error"></div>
 
+<!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<!-- MarkerCluster JS -->
+<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+
 <script>
   const map = L.map('map').setView([23.8103, 90.4125], 7);
 
@@ -25,17 +71,25 @@
     attribution: '© OpenStreetMap contributors'
   }).addTo(map);
 
-  // Load data from your mock API
+  const markers = L.markerClusterGroup();
+
   fetch('https://mocki.io/v1/5fa25d97-02f8-4c70-8129-373558e14a7f')
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) throw new Error('API response not OK');
+      return response.json();
+    })
     .then(data => {
       data.forEach(location => {
-        L.marker([location.lat, location.lng])
-          .addTo(map)
-          .bindPopup(location.name);
+        const marker = L.marker([location.lat, location.lng])
+          .bindPopup(`<strong>${location.name}</strong>`);
+        markers.addLayer(marker);
       });
+      map.addLayer(markers);
+      document.getElementById('loading').style.display = 'none';
     })
     .catch(error => {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('error').textContent = 'Failed to load map data. Please try again later.';
       console.error('Error loading API data:', error);
     });
 </script>
