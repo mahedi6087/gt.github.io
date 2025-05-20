@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Interactive Leaflet Map with Mock API</title>
+  <title>Advanced Interactive Map</title>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -12,86 +12,143 @@
 
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
       margin: 0;
-      padding: 0;
-      background: #f5f5f5;
-      color: #333;
-      text-align: center;
-    }
-
-    h2 {
-      margin: 20px 0;
+      font-family: 'Segoe UI', sans-serif;
+      transition: background 0.3s, color 0.3s;
     }
 
     #map {
-      height: 500px;
-      width: 90%;
-      margin: auto;
-      border: 3px solid #333;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      height: 100vh;
+      width: 75%;
+      float: right;
     }
 
-    #loading {
-      position: absolute;
-      top: 60px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: white;
-      padding: 10px 20px;
-      border: 2px solid #444;
-      border-radius: 5px;
+    #sidebar {
+      width: 25%;
+      height: 100vh;
+      overflow-y: auto;
+      float: left;
+      padding: 20px;
+      background: #f0f0f0;
+      border-right: 1px solid #ccc;
+      box-sizing: border-box;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    #sidebar.dark {
+      background: #1e1e1e;
+      color: #eee;
+      border-color: #444;
+    }
+
+    #map.dark {
+      filter: invert(90%) hue-rotate(180deg);
+    }
+
+    .location-item {
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    .location-item:hover {
       font-weight: bold;
-      z-index: 1000;
+      text-decoration: underline;
     }
 
-    #error {
-      color: red;
-      margin-top: 15px;
+    #searchBar {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #aaa;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    #toggleDark {
+      margin-top: 10px;
+      padding: 8px 15px;
+      background: #333;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
     }
   </style>
 </head>
 <body>
 
-<h2>Dynamic Map from Your API</h2>
-<div id="loading">Loading map data...</div>
+<div id="sidebar">
+  <input type="text" id="searchBar" placeholder="Search location..." />
+  <div id="locationList"></div>
+  <button id="toggleDark">Toggle Dark Mode</button>
+</div>
 <div id="map"></div>
-<div id="error"></div>
 
-<!-- Leaflet JS -->
+<!-- Leaflet & Plugins -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<!-- MarkerCluster JS -->
 <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
 
 <script>
   const map = L.map('map').setView([23.8103, 90.4125], 7);
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors'
   }).addTo(map);
 
   const markers = L.markerClusterGroup();
+  const locationList = document.getElementById('locationList');
+  const searchBar = document.getElementById('searchBar');
+  const toggleDark = document.getElementById('toggleDark');
+  let allLocations = [];
+
+  const customIcon = L.icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/854/854878.png',
+    iconSize: [30, 30],
+    iconAnchor: [15, 30],
+    popupAnchor: [0, -30]
+  });
 
   fetch('https://mocki.io/v1/5fa25d97-02f8-4c70-8129-373558e14a7f')
-    .then(response => {
-      if (!response.ok) throw new Error('API response not OK');
-      return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
-      data.forEach(location => {
-        const marker = L.marker([location.lat, location.lng])
+      allLocations = data;
+      updateList(data);
+      data.forEach((location, index) => {
+        const marker = L.marker([location.lat, location.lng], { icon: customIcon })
           .bindPopup(`<strong>${location.name}</strong>`);
+        marker._id = index;
         markers.addLayer(marker);
       });
       map.addLayer(markers);
-      document.getElementById('loading').style.display = 'none';
     })
-    .catch(error => {
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('error').textContent = 'Failed to load map data. Please try again later.';
-      console.error('Error loading API data:', error);
+    .catch(err => {
+      locationList.innerHTML = `<p style="color:red;">Failed to load map data.</p>`;
+      console.error(err);
     });
+
+  function updateList(locations) {
+    locationList.innerHTML = '';
+    locations.forEach((loc, idx) => {
+      const item = document.createElement('div');
+      item.className = 'location-item';
+      item.textContent = loc.name;
+      item.addEventListener('click', () => {
+        map.setView([loc.lat, loc.lng], 12);
+      });
+      locationList.appendChild(item);
+    });
+  }
+
+  searchBar.addEventListener('input', () => {
+    const query = searchBar.value.toLowerCase();
+    const filtered = allLocations.filter(loc => loc.name.toLowerCase().includes(query));
+    updateList(filtered);
+  });
+
+  toggleDark.addEventListener('click', () => {
+    document.body.classList.toggle('dark');
+    document.getElementById('sidebar').classList.toggle('dark');
+    document.getElementById('map').classList.toggle('dark');
+  });
 </script>
 
 </body>
