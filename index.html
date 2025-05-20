@@ -1,25 +1,47 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>HalalFinder</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="style.css" />
+  <title>Halal Places in Korea</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    body { font-family: Arial; margin: 0; padding: 0; }
+    #map { height: 90vh; width: 100%; }
+    #controls {
+      padding: 10px;
+      background: #f0f0f0;
+      text-align: center;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 0 5px;
+      border: none;
+      background: #007bff;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #sidebar {
+      padding: 10px;
+      max-height: 200px;
+      overflow-y: auto;
+      border-top: 1px solid #ccc;
+      background: #fafafa;
+    }
+  </style>
 </head>
 <body>
-  <h1>HalalFinder</h1>
-  <div class="controls">
-    <input type="text" id="searchBox" placeholder="Search city...">
-    <button onclick="searchPlace()">Search</button>
-    <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
-  </div>
-  <div id="container">
-    <div id="sidebar"></div>
-    <div id="map"></div>
-  </div>
 
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="script.js"></script>
+<div id="controls">
+  <button onclick="loadHalalPlaces('Seoul')">Show Halal in Seoul</button>
+  <button onclick="loadHalalPlaces('Busan')">Show Halal in Busan</button>
+</div>
+<div id="map"></div>
+<div id="sidebar"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="script.js"></script>
+
 </body>
 </html>
