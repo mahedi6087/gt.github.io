@@ -1,47 +1,244 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Halal Places in Korea</title>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Halal Food Finder - South Korea</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet/dist/leaflet.css"
+  />
   <style>
-    body { font-family: Arial; margin: 0; padding: 0; }
-    #map { height: 90vh; width: 100%; }
-    #controls {
-      padding: 10px;
-      background: #f0f0f0;
-      text-align: center;
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 0;
+      background: white;
+      color: #333;
+      transition: background 0.3s, color 0.3s;
     }
-    button {
-      padding: 10px 20px;
-      margin: 0 5px;
-      border: none;
-      background: #007bff;
-      color: white;
-      border-radius: 4px;
+    #map {
+      height: 500px;
+      width: 100%;
+    }
+    #searchSection {
+      padding: 10px;
+      background: #f8f8f8;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #searchInput {
+      flex-grow: 1;
+      padding: 8px;
+      font-size: 16px;
+    }
+    #searchBtn {
+      padding: 8px 12px;
+      font-size: 16px;
       cursor: pointer;
     }
-    #sidebar {
-      padding: 10px;
-      max-height: 200px;
-      overflow-y: auto;
-      border-top: 1px solid #ccc;
-      background: #fafafa;
+    #message {
+      margin: 10px;
+      font-weight: bold;
+    }
+    #darkModeToggle {
+      margin-left: auto;
+      cursor: pointer;
+      user-select: none;
+      font-size: 16px;
+      padding: 8px;
+      background: #ddd;
+      border-radius: 4px;
+    }
+    body.dark {
+      background: #222;
+      color: #eee;
+    }
+    body.dark #searchSection {
+      background: #333;
+    }
+    body.dark #searchInput {
+      background: #555;
+      color: #eee;
+      border: 1px solid #888;
+    }
+    body.dark #searchBtn {
+      background: #666;
+      color: #eee;
+      border: none;
+    }
+    body.dark #darkModeToggle {
+      background: #555;
+      color: #eee;
     }
   </style>
 </head>
 <body>
 
-<div id="controls">
-  <button onclick="loadHalalPlaces('Seoul')">Show Halal in Seoul</button>
-  <button onclick="loadHalalPlaces('Busan')">Show Halal in Busan</button>
+<div id="searchSection">
+  <input
+    type="text"
+    id="searchInput"
+    placeholder="Enter district or city in South Korea (e.g., Seoul, Busan)"
+  />
+  <button id="searchBtn">Search</button>
+  <div id="darkModeToggle">🌙 Dark Mode</div>
 </div>
+<div id="message"></div>
 <div id="map"></div>
-<div id="sidebar"></div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script src="script.js"></script>
+<script>
+  // Initialize the map centered roughly on South Korea
+  const map = L.map('map').setView([36.5, 127.8], 7);
+
+  // OpenStreetMap tile layer
+  let lightLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+
+  // Dark tile layer from CartoDB (for dark mode)
+  let darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; CartoDB'
+  });
+
+  // Custom halal icon
+  const halalIcon = L.icon({
+    iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/3/3a/Halal_logo.svg',
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32]
+  });
+
+  const messageDiv = document.getElementById('message');
+  const searchInput = document.getElementById('searchInput');
+  const searchBtn = document.getElementById('searchBtn');
+  const darkModeToggle = document.getElementById('darkModeToggle');
+
+  let markersLayer = L.layerGroup().addTo(map);
+
+  // Function to toggle dark mode
+  darkModeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark');
+    if (document.body.classList.contains('dark')) {
+      map.removeLayer(lightLayer);
+      darkLayer.addTo(map);
+      darkModeToggle.textContent = '☀️ Light Mode';
+    } else {
+      map.removeLayer(darkLayer);
+      lightLayer.addTo(map);
+      darkModeToggle.textContent = '🌙 Dark Mode';
+    }
+  });
+
+  async function searchLocation(query) {
+    messageDiv.textContent = 'Searching location...';
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=kr&limit=1`;
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'HalalFinderApp/1.0 (your.email@example.com)'
+        }
+      });
+      const data = await response.json();
+      if (data.length === 0) {
+        messageDiv.textContent = 'Location not found in South Korea.';
+        return null;
+      }
+      return {
+        lat: parseFloat(data[0].lat),
+        lon: parseFloat(data[0].lon),
+        displayName: data[0].display_name
+      };
+    } catch (err) {
+      console.error('Nominatim error:', err);
+      messageDiv.textContent = 'Error searching location.';
+      return null;
+    }
+  }
+
+  async function searchHalalPlaces(lat, lon) {
+    messageDiv.textContent = 'Searching halal places nearby...';
+    const radius = 10000; // 10km radius
+
+    const query = `
+      [out:json][timeout:25];
+      (
+        node["cuisine"="halal"](around:${radius},${lat},${lon});
+        node["diet:halal"="yes"](around:${radius},${lat},${lon});
+        node["name"~"halal",i](around:${radius},${lat},${lon});
+      );
+      out body;
+    `;
+
+    const url = 'https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(query);
+
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (!data.elements || data.elements.length === 0) {
+        messageDiv.textContent = 'No halal places found nearby.';
+        return [];
+      }
+      return data.elements;
+    } catch (err) {
+      console.error('Overpass error:', err);
+      messageDiv.textContent = 'Error fetching halal places.';
+      return [];
+    }
+  }
+
+  function clearMarkers() {
+    markersLayer.clearLayers();
+  }
+
+  function addMarkers(places) {
+    clearMarkers();
+    places.forEach(place => {
+      if (!place.lat || !place.lon) return;
+      const name = place.tags?.name || 'Unnamed halal place';
+      const marker = L.marker([place.lat, place.lon], { icon: halalIcon })
+        .bindPopup(`<b>${name}</b>`);
+      markersLayer.addLayer(marker);
+    });
+  }
+
+  async function onSearch() {
+    const query = searchInput.value.trim();
+    if (!query) {
+      alert('Please enter a district or city name.');
+      return;
+    }
+
+    messageDiv.textContent = '';
+    clearMarkers();
+
+    // 1. Get city coordinates from Nominatim
+    const location = await searchLocation(query);
+    if (!location) return;
+
+    // Center map on location and zoom
+    map.setView([location.lat, location.lon], 13);
+
+    // 2. Get halal places nearby using Overpass
+    const halalPlaces = await searchHalalPlaces(location.lat, location.lon);
+
+    // 3. Add markers
+    addMarkers(halalPlaces);
+
+    if (halalPlaces.length > 0) {
+      messageDiv.textContent = `Found ${halalPlaces.length} halal place(s) near ${location.displayName}.`;
+    }
+  }
+
+  searchBtn.addEventListener('click', onSearch);
+
+  // Optional: allow Enter key in input to trigger search
+  searchInput.addEventListener('keypress', e => {
+    if (e.key === 'Enter') onSearch();
+  });
+</script>
 
 </body>
 </html>
