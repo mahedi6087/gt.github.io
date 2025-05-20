@@ -1,0 +1,35 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+h1 {
+  text-align: center;
+  margin: 10px 0;
+}
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+}
+#container {
+  display: flex;
+}
+#sidebar {
+  width: 300px;
+  height: 500px;
+  overflow-y: auto;
+  background: #f0f0f0;
+  padding: 10px;
+}
+#map {
+  flex: 1;
+  height: 500px;
+}
+body.dark {
+  background: #121212;
+  color: white;
+}
+body.dark #sidebar {
+  background: #1e1e1e;
+}
