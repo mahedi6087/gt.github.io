@@ -3,161 +3,167 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Halal Food Finder - South Korea</title>
+  <title>Smart Halal Food Finder – South Korea</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <style>
     body {
-      font-family: Arial, sans-serif;
-      margin: 0; padding: 0;
-      background: white;
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f4f4;
       color: #333;
       transition: background 0.3s, color 0.3s;
     }
-    #map { height: 500px; width: 100%; }
-    #searchSection {
-      padding: 10px;
-      background: #f8f8f8;
+    #searchBar {
       display: flex;
+      padding: 10px;
+      background: #fff;
       align-items: center;
       gap: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
     #searchInput {
       flex-grow: 1;
-      padding: 8px;
+      padding: 10px;
       font-size: 16px;
     }
-    #searchBtn {
-      padding: 8px 12px;
-      font-size: 16px;
+    #searchBtn, #toggleDark {
+      padding: 10px 14px;
       cursor: pointer;
-    }
-    #darkModeToggle {
-      margin-left: auto;
-      cursor: pointer;
-      padding: 8px;
-      background: #ddd;
-      border-radius: 4px;
-    }
-    #message {
-      margin: 10px;
+      border: none;
+      background: #0a7d7d;
+      color: white;
+      border-radius: 5px;
       font-weight: bold;
+    }
+    #map {
+      height: 500px;
+      width: 100%;
     }
     #results {
       padding: 10px;
-      background: #f4f4f4;
     }
-    .resultItem {
-      margin-bottom: 10px;
-      border-bottom: 1px solid #ccc;
-      padding-bottom: 5px;
+    .card {
+      background: #fff;
+      padding: 10px;
+      border-radius: 8px;
+      margin: 10px 0;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    #weather {
+      margin-top: 10px;
+      font-style: italic;
+      color: #555;
     }
 
+    /* Dark Mode */
     body.dark {
-      background: #222;
+      background: #1e1e1e;
       color: #eee;
     }
-    body.dark #searchSection {
+    body.dark #searchBar {
       background: #333;
     }
-    body.dark #searchInput {
-      background: #555;
-      color: #eee;
-    }
-    body.dark #searchBtn, body.dark #darkModeToggle {
-      background: #666;
-      color: #eee;
-    }
-    body.dark #results {
+    body.dark .card {
       background: #2a2a2a;
+      color: #ddd;
+    }
+    body.dark #searchInput {
+      background: #444;
+      color: #fff;
+      border: none;
+    }
+
+    .suggestion-list {
+      margin-top: 5px;
+      font-size: 14px;
+      color: #666;
     }
   </style>
 </head>
 <body>
 
-<div id="searchSection">
-  <input type="text" id="searchInput" placeholder="Enter district or city in South Korea (e.g., Seoul, Haeundae)" />
+<div id="searchBar">
+  <input id="searchInput" type="text" placeholder="Search city or district (e.g., Seoul, Haeundae)" />
   <button id="searchBtn">Search</button>
-  <div id="darkModeToggle">🌙 Dark Mode</div>
+  <button id="toggleDark">🌙</button>
 </div>
-<div id="message"></div>
+
+<div class="suggestion-list" style="padding: 0 10px;">
+  Try: Seoul, Busan, Haeundae, Incheon
+</div>
+
 <div id="map"></div>
+<div id="weather"></div>
 <div id="results"></div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
   const map = L.map('map').setView([36.5, 127.8], 7);
 
-  const lightLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
+  const lightTiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap'
   }).addTo(map);
 
-  const darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; CartoDB'
+  const darkTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '© CartoDB'
   });
 
   const halalIcon = L.icon({
-    iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/3/3a/Halal_logo.svg',
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/1046/1046751.png',
     iconSize: [32, 32],
     iconAnchor: [16, 32],
     popupAnchor: [0, -32]
   });
 
-  const messageDiv = document.getElementById('message');
-  const searchInput = document.getElementById('searchInput');
-  const searchBtn = document.getElementById('searchBtn');
-  const resultsDiv = document.getElementById('results');
-  const darkModeToggle = document.getElementById('darkModeToggle');
-  const markersLayer = L.layerGroup().addTo(map);
+  let markers = L.layerGroup().addTo(map);
 
-  darkModeToggle.addEventListener('click', () => {
+  const input = document.getElementById('searchInput');
+  const btn = document.getElementById('searchBtn');
+  const results = document.getElementById('results');
+  const weather = document.getElementById('weather');
+  const darkBtn = document.getElementById('toggleDark');
+
+  darkBtn.onclick = () => {
     document.body.classList.toggle('dark');
     if (document.body.classList.contains('dark')) {
-      map.removeLayer(lightLayer);
-      darkLayer.addTo(map);
-      darkModeToggle.textContent = '☀️ Light Mode';
+      map.removeLayer(lightTiles);
+      darkTiles.addTo(map);
+      darkBtn.textContent = '☀️';
     } else {
-      map.removeLayer(darkLayer);
-      lightLayer.addTo(map);
-      darkModeToggle.textContent = '🌙 Dark Mode';
+      map.removeLayer(darkTiles);
+      lightTiles.addTo(map);
+      darkBtn.textContent = '🌙';
     }
-  });
+  };
 
-  async function getAddress(lat, lon) {
-    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`;
+  async function getCityCoords(city) {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(city)}&countrycodes=kr&limit=1`;
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'SmartHalalFinder/1.0'
+      }
+    });
+    const data = await res.json();
+    if (data.length === 0) return null;
+    return {
+      lat: parseFloat(data[0].lat),
+      lon: parseFloat(data[0].lon),
+      display: data[0].display_name
+    };
+  }
+
+  async function getWeather(city) {
+    const key = 'https://wttr.in/' + encodeURIComponent(city) + '?format=3';
     try {
-      const res = await fetch(url, {
-        headers: {
-          'User-Agent': 'HalalFinderApp/1.0 (your.email@example.com)'
-        }
-      });
-      const data = await res.json();
-      return data.display_name || "Address not available";
-    } catch {
-      return "Address not available";
+      const res = await fetch(key);
+      const txt = await res.text();
+      weather.textContent = 'Weather: ' + txt;
+    } catch (e) {
+      weather.textContent = '';
     }
   }
 
-  async function searchLocation(query) {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=kr&limit=1`;
-    try {
-      const response = await fetch(url, {
-        headers: {
-          'User-Agent': 'HalalFinderApp/1.0 (your.email@example.com)'
-        }
-      });
-      const data = await response.json();
-      if (data.length === 0) return null;
-      return {
-        lat: parseFloat(data[0].lat),
-        lon: parseFloat(data[0].lon),
-        displayName: data[0].display_name
-      };
-    } catch {
-      return null;
-    }
-  }
-
-  async function searchHalalPlaces(lat, lon) {
+  async function getHalalPlaces(lat, lon) {
     const radius = 10000;
     const query = `
       [out:json][timeout:25];
@@ -169,62 +175,51 @@
       out body;
     `;
     const url = 'https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(query);
-    try {
-      const res = await fetch(url);
-      const data = await res.json();
-      return data.elements || [];
-    } catch {
-      return [];
-    }
+    const res = await fetch(url);
+    const data = await res.json();
+    return data.elements;
   }
 
-  function clearResults() {
-    resultsDiv.innerHTML = "";
-    markersLayer.clearLayers();
-  }
+  async function handleSearch() {
+    const city = input.value.trim();
+    if (!city) return alert("Please enter a city or district name.");
 
-  async function onSearch() {
-    const query = searchInput.value.trim();
-    if (!query) {
-      alert("Please enter a city or district.");
+    markers.clearLayers();
+    results.innerHTML = '<b>Loading...</b>';
+    weather.textContent = '';
+
+    const coords = await getCityCoords(city);
+    if (!coords) {
+      results.innerHTML = 'Location not found in South Korea.';
       return;
     }
 
-    clearResults();
-    messageDiv.textContent = "Searching...";
+    map.setView([coords.lat, coords.lon], 13);
+    await getWeather(city);
+    const places = await getHalalPlaces(coords.lat, coords.lon);
 
-    const location = await searchLocation(query);
-    if (!location) {
-      messageDiv.textContent = "Location not found in South Korea.";
+    if (!places.length) {
+      results.innerHTML = 'No Halal restaurants found.';
       return;
     }
 
-    map.setView([location.lat, location.lon], 13);
+    results.innerHTML = '';
+    places.forEach(place => {
+      const name = place.tags?.name || 'Unnamed Halal Restaurant';
+      const address = place.tags?.['addr:full'] || place.tags?.['addr:street'] || 'Address not available';
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `<strong>${name}</strong><br>${address}`;
+      results.appendChild(card);
 
-    const halalPlaces = await searchHalalPlaces(location.lat, location.lon);
-    if (halalPlaces.length === 0) {
-      messageDiv.textContent = "No halal places found nearby.";
-      return;
-    }
-
-    messageDiv.textContent = `Found ${halalPlaces.length} halal place(s) near ${location.displayName}.`;
-
-    for (const place of halalPlaces) {
-      const name = place.tags?.name || "Unnamed Halal Place";
-      const marker = L.marker([place.lat, place.lon], { icon: halalIcon }).addTo(markersLayer);
-      marker.bindPopup(`<b>${name}</b>`);
-
-      const address = await getAddress(place.lat, place.lon);
-      const item = document.createElement("div");
-      item.className = "resultItem";
-      item.innerHTML = `<strong>${name}</strong><br><small>${address}</small>`;
-      resultsDiv.appendChild(item);
-    }
+      const marker = L.marker([place.lat, place.lon], { icon: halalIcon }).addTo(markers);
+      marker.bindPopup(`<b>${name}</b><br>${address}`);
+    });
   }
 
-  searchBtn.addEventListener("click", onSearch);
-  searchInput.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") onSearch();
+  btn.onclick = handleSearch;
+  input.addEventListener('keypress', e => {
+    if (e.key === 'Enter') handleSearch();
   });
 </script>
 
