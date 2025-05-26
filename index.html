@@ -1,94 +1,214 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Halal Food Finder - South Korea</title>
+  <title>Halal Food Finder with Sidebar List</title>
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    #map { height: 100vh; width: 100%; }
-    #searchBox {
+    html, body {
+      margin: 0; padding: 0; height: 100%; font-family: sans-serif;
+      display: flex;
+      flex-direction: row;
+    }
+    #map {
+      flex-grow: 1;
+      height: 100vh;
+    }
+    #sidebar {
+      width: 320px;
+      max-width: 320px;
+      height: 100vh;
+      overflow-y: auto;
+      border-left: 2px solid #4CAF50;
+      padding: 10px;
+      box-sizing: border-box;
+      background: #f7f7f7;
+    }
+    #search-box {
       position: absolute;
-      top: 10px;
-      left: 10px;
+      top: 10px; left: 10px;
       z-index: 5;
       background: white;
-      padding: 10px;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      padding: 8px;
+      border-radius: 6px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.3);
+      width: 280px;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      font-size: 16px;
+      border: 2px solid #4CAF50;
+      border-radius: 6px;
+    }
+    .place-item {
+      padding: 8px;
+      margin-bottom: 8px;
+      background: white;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      transition: background-color 0.2s ease;
+    }
+    .place-item:hover {
+      background-color: #d0f0c0;
     }
   </style>
 </head>
 <body>
-  <div id="searchBox">
-    <input id="cityInput" type="text" placeholder="Enter city (e.g. Seoul)" />
-    <button onclick="searchHalal()">Search</button>
-  </div>
   <div id="map"></div>
+  <div id="sidebar">
+    <h2>Halal Places</h2>
+    <div id="places-list">Search and places will show here...</div>
+  </div>
+  <div id="search-box">
+    <input id="location-input" type="text" placeholder="Search city (Seoul, Busan, etc)" />
+  </div>
 
   <script>
-    let map;
-    let service;
-    let markers = [];
+    let map, service, infoWindow;
+    let halalMarkers = [];
+    const halalKeywords = ['halal', 'muslim', 'islam', 'masjid', 'mosque', 'arabic', 'turkish', 'middle eastern'];
 
     function initMap() {
       map = new google.maps.Map(document.getElementById("map"), {
-        center: { lat: 36.5, lng: 127.5 }, // Center of Korea
-        zoom: 7,
+        center: { lat: 37.5665, lng: 126.9780 },
+        zoom: 13,
       });
-    }
+      infoWindow = new google.maps.InfoWindow();
 
-    function searchHalal() {
-      const city = document.getElementById("cityInput").value;
-      if (!city) return alert("Enter a city name.");
+      // Geolocation
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const userLoc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            map.setCenter(userLoc);
+            searchHalalPlaces(userLoc);
+          },
+          () => {
+            // fallback center
+            map.setCenter({ lat: 37.5665, lng: 126.9780 });
+          }
+        );
+      }
 
-      const geocoder = new google.maps.Geocoder();
-      geocoder.geocode({ address: city + ', South Korea' }, (results, status) => {
-        if (status === "OK") {
-          const location = results[0].geometry.location;
-          map.setCenter(location);
-          map.setZoom(14);
-
-          const request = {
-            location: location,
-            radius: 5000,
-            keyword: "halal restaurant",
-          };
-
-          service = new google.maps.places.PlacesService(map);
-          service.nearbySearch(request, (results, status) => {
-            if (status === google.maps.places.PlacesServiceStatus.OK) {
-              markers.forEach(marker => marker.setMap(null));
-              markers = [];
-
-              results.forEach(place => {
-                const marker = new google.maps.Marker({
-                  map: map,
-                  position: place.geometry.location,
-                  title: place.name,
-                });
-
-                const infowindow = new google.maps.InfoWindow({
-                  content: `<strong>${place.name}</strong><br>${place.vicinity}`,
-                });
-
-                marker.addListener("click", () => {
-                  infowindow.open(map, marker);
-                });
-
-                markers.push(marker);
-              });
-            } else {
-              alert("No halal places found.");
-            }
-          });
-        } else {
-          alert("Location not found.");
+      // Search box logic
+      const input = document.getElementById("location-input");
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          searchByText(input.value);
         }
       });
     }
+
+    // Search by typed text using Geocoder
+    function searchByText(text) {
+      if (!text) return alert("Please enter a city or location name.");
+      const geocoder = new google.maps.Geocoder();
+      geocoder.geocode({ address: text }, (results, status) => {
+        if (status === 'OK' && results[0]) {
+          const loc = results[0].geometry.location;
+          map.setCenter(loc);
+          map.setZoom(14);
+          searchHalalPlaces(loc);
+        } else {
+          alert("Location not found: " + status);
+        }
+      });
+    }
+
+    // Search halal places around location
+    function searchHalalPlaces(location) {
+      clearMarkers();
+      clearPlaceList();
+      const request = {
+        location: location,
+        radius: 7000,
+        type: ['restaurant', 'grocery_or_supermarket', 'food'],
+        keyword: 'halal',
+      };
+      service = new google.maps.places.PlacesService(map);
+      service.nearbySearch(request, (results, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK && results.length) {
+          results.forEach(place => {
+            const lowerName = place.name.toLowerCase();
+            if (halalKeywords.some(word => lowerName.includes(word))) {
+              addHalalMarker(place);
+              addPlaceToList(place);
+            }
+          });
+          if (halalMarkers.length === 0) {
+            document.getElementById('places-list').innerText = "No halal places found nearby.";
+          }
+        } else {
+          document.getElementById('places-list').innerText = "No halal places found.";
+        }
+      });
+    }
+
+    // Add marker on map
+    function addHalalMarker(place) {
+      const mosqueIcon = {
+        url: "https://cdn-icons-png.flaticon.com/512/3305/3305946.png",
+        scaledSize: new google.maps.Size(36, 36),
+      };
+      const marker = new google.maps.Marker({
+        map: map,
+        position: place.geometry.location,
+        icon: mosqueIcon,
+        title: place.name
+      });
+      halalMarkers.push(marker);
+
+      marker.addListener("click", () => {
+        infoWindow.setContent(`
+          <div>
+            🕌 <strong>${place.name}</strong><br/>
+            📍 ${place.vicinity || place.formatted_address || ''}<br/>
+            <a href="https://www.google.com/maps/dir/?api=1&destination=${place.geometry.location.lat()},${place.geometry.location.lng()}" target="_blank">
+              📌 Get Directions
+            </a>
+          </div>
+        `);
+        infoWindow.open(map, marker);
+      });
+    }
+
+    // Clear all markers from map
+    function clearMarkers() {
+      halalMarkers.forEach(marker => marker.setMap(null));
+      halalMarkers = [];
+    }
+
+    // Add place to sidebar list
+    function addPlaceToList(place) {
+      const list = document.getElementById('places-list');
+      const div = document.createElement('div');
+      div.className = 'place-item';
+      div.innerHTML = `
+        <strong>${place.name}</strong><br/>
+        ${place.vicinity || place.formatted_address || ''}
+      `;
+      div.onclick = () => {
+        map.setCenter(place.geometry.location);
+        map.setZoom(16);
+        // Open info window of marker
+        const marker = halalMarkers.find(m => m.getPosition().equals(place.geometry.location));
+        if (marker) {
+          google.maps.event.trigger(marker, 'click');
+        }
+      };
+      list.appendChild(div);
+    }
+
+    // Clear sidebar list
+    function clearPlaceList() {
+      document.getElementById('places-list').innerHTML = '';
+    }
   </script>
 
-  <script async
-    src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY_HERE&libraries=places&callback=initMap">
+  <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCXD3yufEIVuzykJjZpjiGUMRQ2i3kfVWY&libraries=places&callback=initMap">
   </script>
 </body>
 </html>
