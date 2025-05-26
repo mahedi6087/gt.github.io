@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Halal Places Map - South Korea</title>
+  <title>Halal Places Map - Busan</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
@@ -25,7 +25,7 @@
   const map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/mapbox/streets-v11',
-    center: [126.978, 37.5665], // Default: Seoul
+    center: [129.0756, 35.1796], // Default center: Busan
     zoom: 13
   });
 
@@ -59,7 +59,7 @@
     .catch(err => console.error("Foursquare API error:", err));
   }
 
-  // Get user's location
+  // Try to get user's location
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       pos => {
@@ -67,7 +67,6 @@
         const userLon = pos.coords.longitude;
         map.setCenter([userLon, userLat]);
 
-        // Mark user location
         new mapboxgl.Marker({ color: "blue" })
           .setLngLat([userLon, userLat])
           .setPopup(new mapboxgl.Popup().setHTML(`<strong>You are here</strong>`))
@@ -76,12 +75,12 @@
         showHalalPlaces(userLat, userLon);
       },
       err => {
-        console.warn("Location access denied. Showing Seoul.");
-        showHalalPlaces(37.5665, 126.978); // Fallback
+        console.warn("Location access denied. Showing Busan.");
+        showHalalPlaces(35.1796, 129.0756); // Fallback: Busan
       }
     );
   } else {
-    showHalalPlaces(37.5665, 126.978); // Fallback
+    showHalalPlaces(35.1796, 129.0756); // Fallback: Busan
   }
 </script>
 
