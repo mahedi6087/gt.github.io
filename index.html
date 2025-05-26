@@ -1,88 +1,94 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8" />
-  <title>Halal Places Map - Busan</title>
+  <title>Halal Food Finder - South Korea</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
-  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
   <style>
-    body, html { margin: 0; padding: 0; height: 100%; }
-    #map { width: 100%; height: 100vh; }
-    .mapboxgl-popup { max-width: 250px; font-family: Arial, sans-serif; }
+    #map { height: 100vh; width: 100%; }
+    #searchBox {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 5;
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
   </style>
 </head>
 <body>
+  <div id="searchBox">
+    <input id="cityInput" type="text" placeholder="Enter city (e.g. Seoul)" />
+    <button onclick="searchHalal()">Search</button>
+  </div>
+  <div id="map"></div>
 
-<div id="map"></div>
+  <script>
+    let map;
+    let service;
+    let markers = [];
 
-<script>
-  const mapboxToken = 'pk.9a82bab58fb4a2a80922b4e60a5d2ba7';
-  const foursquareApiKey = 'fsq3Pq6GlLkDeYhiBH2S8qFzdyihHnDBpqKCb9AEuEYEAEc=';
-
-  mapboxgl.accessToken = mapboxToken;
-
-  const map = new mapboxgl.Map({
-    container: 'map',
-    style: 'mapbox://styles/mapbox/streets-v11',
-    center: [129.0756, 35.1796], // Default center: Busan
-    zoom: 13
-  });
-
-  function showHalalPlaces(lat, lon) {
-    const url = `https://api.foursquare.com/v3/places/search?query=halal&ll=${lat},${lon}&radius=10000&limit=20`;
-
-    fetch(url, {
-      headers: {
-        Accept: "application/json",
-        Authorization: foursquareApiKey
-      }
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.results.length === 0) {
-        alert("No halal places found nearby.");
-      }
-
-      data.results.forEach(place => {
-        const lng = place.geocodes.main.longitude;
-        const lat = place.geocodes.main.latitude;
-        const name = place.name;
-        const address = place.location.formatted_address || 'No address available';
-
-        new mapboxgl.Marker({ color: 'green' })
-          .setLngLat([lng, lat])
-          .setPopup(new mapboxgl.Popup().setHTML(`<strong>${name}</strong><br>${address}`))
-          .addTo(map);
+    function initMap() {
+      map = new google.maps.Map(document.getElementById("map"), {
+        center: { lat: 36.5, lng: 127.5 }, // Center of Korea
+        zoom: 7,
       });
-    })
-    .catch(err => console.error("Foursquare API error:", err));
-  }
+    }
 
-  // Try to get user's location
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      pos => {
-        const userLat = pos.coords.latitude;
-        const userLon = pos.coords.longitude;
-        map.setCenter([userLon, userLat]);
+    function searchHalal() {
+      const city = document.getElementById("cityInput").value;
+      if (!city) return alert("Enter a city name.");
 
-        new mapboxgl.Marker({ color: "blue" })
-          .setLngLat([userLon, userLat])
-          .setPopup(new mapboxgl.Popup().setHTML(`<strong>You are here</strong>`))
-          .addTo(map);
+      const geocoder = new google.maps.Geocoder();
+      geocoder.geocode({ address: city + ', South Korea' }, (results, status) => {
+        if (status === "OK") {
+          const location = results[0].geometry.location;
+          map.setCenter(location);
+          map.setZoom(14);
 
-        showHalalPlaces(userLat, userLon);
-      },
-      err => {
-        console.warn("Location access denied. Showing Busan.");
-        showHalalPlaces(35.1796, 129.0756); // Fallback: Busan
-      }
-    );
-  } else {
-    showHalalPlaces(35.1796, 129.0756); // Fallback: Busan
-  }
-</script>
+          const request = {
+            location: location,
+            radius: 5000,
+            keyword: "halal restaurant",
+          };
 
+          service = new google.maps.places.PlacesService(map);
+          service.nearbySearch(request, (results, status) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK) {
+              markers.forEach(marker => marker.setMap(null));
+              markers = [];
+
+              results.forEach(place => {
+                const marker = new google.maps.Marker({
+                  map: map,
+                  position: place.geometry.location,
+                  title: place.name,
+                });
+
+                const infowindow = new google.maps.InfoWindow({
+                  content: `<strong>${place.name}</strong><br>${place.vicinity}`,
+                });
+
+                marker.addListener("click", () => {
+                  infowindow.open(map, marker);
+                });
+
+                markers.push(marker);
+              });
+            } else {
+              alert("No halal places found.");
+            }
+          });
+        } else {
+          alert("Location not found.");
+        }
+      });
+    }
+  </script>
+
+  <script async
+    src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY_HERE&libraries=places&callback=initMap">
+  </script>
 </body>
 </html>
