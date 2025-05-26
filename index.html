@@ -1,128 +1,141 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Halal Food Finder</title>
-  <meta charset="utf-8">
+  <title>Halal Food Finder - South Korea</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    html, body { height: 100%; margin: 0; font-family: sans-serif; }
-    #map { height: 100%; width: 70%; float: left; }
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+    #map {
+      height: 100%;
+      width: 70%;
+      float: left;
+    }
     #sidebar {
-      width: 30%; height: 100%; overflow-y: scroll; background: #f2f2f2;
-      padding: 10px; box-sizing: border-box; float: right;
+      width: 30%;
+      float: left;
+      height: 100%;
+      overflow-y: auto;
+      padding: 10px;
+      background-color: #f9f9f9;
+      border-left: 1px solid #ccc;
     }
-    input[type="text"] {
-      width: 100%; padding: 8px; font-size: 16px;
-      margin-bottom: 10px; border: 1px solid #ccc;
+    #search-box {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      font-size: 16px;
     }
-    .place { padding: 10px; background: #fff; margin-bottom: 8px; border-radius: 5px; cursor: pointer; }
-    .place:hover { background: #e0ffe0; }
+    .place-card {
+      border-bottom: 1px solid #ddd;
+      padding: 8px;
+      margin-bottom: 5px;
+    }
+    .place-name {
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
+  <div id="map"></div>
+  <div id="sidebar">
+    <input id="search-box" type="text" placeholder="Search city (e.g. Seoul)">
+    <div id="results"></div>
+  </div>
 
-<div id="map"></div>
-<div id="sidebar">
-  <input type="text" id="search" placeholder="Search city (e.g. Busan)">
-  <div id="places"></div>
-</div>
+  <script>
+    let map;
+    let markers = [];
+    const iconUrl = "https://cdn-icons-png.flaticon.com/512/1048/1048318.png";
 
-<script>
-  let map, service, infowindow;
-  const halalWords = ["halal", "muslim", "islam", "masjid", "mosque", "arabic", "turkish"];
+    function initMap() {
+      map = new google.maps.Map(document.getElementById("map"), {
+        center: { lat: 37.5665, lng: 126.9780 }, // Default to Seoul
+        zoom: 12,
+      });
 
-  function initMap() {
-    map = new google.maps.Map(document.getElementById("map"), {
-      center: { lat: 37.5665, lng: 126.9780 },
-      zoom: 13,
-    });
-    infowindow = new google.maps.InfoWindow();
-
-    document.getElementById("search").addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        let query = e.target.value;
-        let geocoder = new google.maps.Geocoder();
-        geocoder.geocode({ address: query }, function(results, status) {
-          if (status === "OK") {
-            map.setCenter(results[0].geometry.location);
-            searchHalal(results[0].geometry.location);
-          } else {
-            alert("Location not found");
-          }
+      // Auto-locate user's position
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+          const pos = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+          map.setCenter(pos);
+          findHalalPlaces(pos);
         });
       }
-    });
 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        let userLoc = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude
-        };
-        map.setCenter(userLoc);
-        searchHalal(userLoc);
+      // Search when "Enter" is pressed
+      document.getElementById("search-box").addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+          const geocoder = new google.maps.Geocoder();
+          geocoder.geocode({ address: this.value }, function (results, status) {
+            if (status === "OK") {
+              map.setCenter(results[0].geometry.location);
+              findHalalPlaces(results[0].geometry.location);
+            } else {
+              alert("Geocode failed: " + status);
+            }
+          });
+        }
       });
     }
-  }
 
-  function searchHalal(location) {
-    clearSidebar();
-    let request = {
-      location: location,
-      radius: 5000,
-      type: ['restaurant', 'grocery_or_supermarket'],
-      keyword: 'halal'
-    };
+    function findHalalPlaces(location) {
+      clearMarkers();
+      const service = new google.maps.places.PlacesService(map);
+      service.nearbySearch(
+        {
+          location: location,
+          radius: 5000,
+          keyword: "halal",
+          type: ["restaurant", "food", "grocery_or_supermarket"],
+        },
+        (results, status) => {
+          document.getElementById("results").innerHTML = "";
+          if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
+            results.forEach((place) => {
+              const marker = new google.maps.Marker({
+                map: map,
+                position: place.geometry.location,
+                icon: {
+                  url: iconUrl,
+                  scaledSize: new google.maps.Size(32, 32),
+                },
+                title: place.name,
+              });
+              markers.push(marker);
 
-    service = new google.maps.places.PlacesService(map);
-    service.nearbySearch(request, function(results, status) {
-      if (status === google.maps.places.PlacesServiceStatus.OK) {
-        results.forEach(place => {
-          let lower = place.name.toLowerCase();
-          if (halalWords.some(w => lower.includes(w))) {
-            addMarker(place);
-            addToSidebar(place);
+              const placeCard = document.createElement("div");
+              placeCard.className = "place-card";
+              placeCard.innerHTML = `
+                <div class="place-name">${place.name}</div>
+                <div>${place.vicinity}</div>
+              `;
+              document.getElementById("results").appendChild(placeCard);
+            });
+          } else {
+            document.getElementById("results").innerHTML = "<p>No Halal places found in this area. Try another city like Itaewon, Seoul.</p>";
           }
-        });
+        }
+      );
+    }
+
+    function clearMarkers() {
+      for (let i = 0; i < markers.length; i++) {
+        markers[i].setMap(null);
       }
-    });
-  }
+      markers = [];
+    }
+  </script>
 
-  function addMarker(place) {
-    let marker = new google.maps.Marker({
-      map: map,
-      position: place.geometry.location,
-      icon: {
-        url: "https://cdn-icons-png.flaticon.com/512/3305/3305946.png",
-        scaledSize: new google.maps.Size(32, 32),
-      },
-      title: place.name
-    });
-
-    marker.addListener("click", () => {
-      infowindow.setContent(`<strong>${place.name}</strong><br>${place.vicinity}`);
-      infowindow.open(map, marker);
-    });
-  }
-
-  function addToSidebar(place) {
-    let div = document.createElement("div");
-    div.className = "place";
-    div.innerHTML = `<strong>${place.name}</strong><br>${place.vicinity}`;
-    div.onclick = () => {
-      map.setCenter(place.geometry.location);
-      map.setZoom(16);
-    };
-    document.getElementById("places").appendChild(div);
-  }
-
-  function clearSidebar() {
-    document.getElementById("places").innerHTML = "";
-  }
-</script>
-
-<script async defer
-src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCXD3yufEIVuzykJjZpjiGUMRQ2i3kfVWY&libraries=places&callback=initMap">
-</script>
-
+  <!-- Google Maps API with your key -->
+  <script async
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCXD3yufEIVuzykJjZpjiGUMRQ2i3kfVWY&libraries=places&callback=initMap">
+  </script>
 </body>
 </html>
