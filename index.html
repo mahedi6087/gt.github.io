@@ -9,6 +9,7 @@
   <style>
     body, html { margin: 0; padding: 0; height: 100%; }
     #map { width: 100%; height: 100vh; }
+    .mapboxgl-popup { max-width: 250px; font-family: Arial, sans-serif; }
   </style>
 </head>
 <body>
@@ -16,7 +17,6 @@
 <div id="map"></div>
 
 <script>
-  // Replace with your tokens
   const mapboxToken = 'pk.9a82bab58fb4a2a80922b4e60a5d2ba7';
   const foursquareApiKey = 'fsq3Pq6GlLkDeYhiBH2S8qFzdyihHnDBpqKCb9AEuEYEAEc=';
 
@@ -40,11 +40,15 @@
     })
     .then(res => res.json())
     .then(data => {
+      if (data.results.length === 0) {
+        alert("No halal places found nearby.");
+      }
+
       data.results.forEach(place => {
         const lng = place.geocodes.main.longitude;
         const lat = place.geocodes.main.latitude;
         const name = place.name;
-        const address = place.location.formatted_address;
+        const address = place.location.formatted_address || 'No address available';
 
         new mapboxgl.Marker({ color: 'green' })
           .setLngLat([lng, lat])
@@ -63,6 +67,7 @@
         const userLon = pos.coords.longitude;
         map.setCenter([userLon, userLat]);
 
+        // Mark user location
         new mapboxgl.Marker({ color: "blue" })
           .setLngLat([userLon, userLat])
           .setPopup(new mapboxgl.Popup().setHTML(`<strong>You are here</strong>`))
@@ -72,12 +77,13 @@
       },
       err => {
         console.warn("Location access denied. Showing Seoul.");
-        showHalalPlaces(37.5665, 126.978); // Default: Seoul
+        showHalalPlaces(37.5665, 126.978); // Fallback
       }
     );
   } else {
-    showHalalPlaces(37.5665, 126.978); // No geolocation support
+    showHalalPlaces(37.5665, 126.978); // Fallback
   }
 </script>
+
 </body>
 </html>
