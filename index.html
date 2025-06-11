@@ -1,419 +1,471 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MAHEDI's Website</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --light-bg: #f4f4f4;
-      --dark-bg: #1e1e1e;
-      --light-text: #000;
-      --dark-text: #fff;
-      --accent: #0077ff;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendar Free Time Finder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    body {
-      margin: 0;
-      font-family: 'Poppins', sans-serif;
-      background: url('aksa.jpg') no-repeat center center fixed;
-      background-size: cover;
-      color: var(--light-text);
-      transition: background 0.5s, color 0.5s;
-      display: flex;
-    }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
 
-    body.dark {
-      background: #121212;
-      color: var(--dark-text);
-    }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
 
-    .sidebar {
-      width: 230px;
-      background: #2c2c2c;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px 10px;
-      position: fixed;
-    }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
 
-    .sidebar h1 {
-      color: #fff;
-      font-size: 22px;
-      margin-bottom: 30px;
-    }
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
 
-    .sidebar a, .dark-toggle {
-      display: block;
-      width: 100%;
-      text-align: left;
-      padding: 12px 16px;
-      margin: 5px 0;
-      color: #fff;
-      background: #444;
-      border: none;
-      text-decoration: none;
-      font-weight: 600;
-      cursor: pointer;
-      border-radius: 5px;
-      transition: background 0.3s ease;
-    }
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
 
-    .sidebar a:hover, .dark-toggle:hover {
-      background: var(--accent);
-    }
+        .main-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
 
-    .dark-toggle {
-      margin-top: auto;
-    }
+        .card-header {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
 
-    .main {
-      margin-left: 230px;
-      width: 100%;
-      padding: 20px;
-    }
+        .card-header h2 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
 
-    .section {
-      opacity: 0;
-      transform: translateY(30px);
-      transition: opacity 0.5s ease, transform 0.5s ease;
-      pointer-events: none;
-      background: rgba(255, 255, 255, 0.9);
-      color: #000;
-      padding: 30px;
-      margin: 20px auto;
-      max-width: 1000px;
-      border-radius: 12px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.2);
-    }
+        .card-content {
+            padding: 30px;
+        }
 
-    .section.active {
-      opacity: 1;
-      transform: translateY(0);
-      pointer-events: auto;
-    }
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
 
-    body.dark .section {
-      background: #1c1c1c;
-      color: white;
-    }
+        .status-item {
+            text-align: center;
+        }
 
-    .progress-bar-wrapper {
-      background: #ddd;
-      border-radius: 30px;
-      overflow: hidden;
-      height: 25px;
-      max-width: 400px;
-      margin: 20px auto;
-      box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
-    }
+        .status-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
 
-    .progress-bar-fill {
-      height: 100%;
-      width: 0;
-      color: white;
-      text-align: center;
-      line-height: 25px;
-      font-weight: bold;
-      border-radius: 30px 0 0 30px;
-      transition: width 1s ease-in-out;
-    }
+        .status-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #4CAF50;
+        }
 
-    .breakdown-button {
-      margin: 20px auto;
-      padding: 10px 20px;
-      background: #0077ff;
-      color: white;
-      font-weight: bold;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-      display: block;
-    }
+        .slots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
 
-    .breakdown-button:hover {
-      background: #005fcc;
-    }
+        .slot-card {
+            background: #fff;
+            border: 2px solid #e3f2fd;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
 
-    .grade-breakdown {
-      margin-top: 20px;
-      display: none;
-    }
+        .slot-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border-color: #4CAF50;
+        }
 
-    .grade-card {
-      background: rgba(0, 0, 0, 0.85);
-      border: 2px solid cyan;
-      color: #fff;
-      padding: 15px;
-      border-radius: 10px;
-      margin-bottom: 15px;
-      font-size: 15px;
-      text-align: left;
-    }
+        .slot-day {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
 
-    body.dark .grade-card {
-      background: rgba(255, 255, 255, 0.1);
-    }
+        .slot-date {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
 
-    /* Live Dashboard Styles */
-    .dashboard-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-      margin-top: 20px;
-    }
+        .slot-time {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-block;
+        }
 
-    .dashboard-card {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 25px;
-      border-radius: 15px;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-      text-align: center;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
 
-    .dashboard-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 12px 35px rgba(0,0,0,0.3);
-    }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
 
-    .dashboard-card h3 {
-      margin: 0 0 15px 0;
-      font-size: 1.2em;
-      opacity: 0.9;
-    }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
 
-    .dashboard-card .score {
-      font-size: 2.5em;
-      font-weight: bold;
-      margin: 10px 0;
-    }
+        .error {
+            background: #ffe6e6;
+            border: 2px solid #ff9999;
+            border-radius: 10px;
+            padding: 20px;
+            color: #cc0000;
+            text-align: center;
+        }
 
-    .dashboard-card .percentage {
-      font-size: 1.1em;
-      opacity: 0.8;
-    }
+        .refresh-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px auto;
+            display: block;
+        }
 
-    .overall-grade {
-      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
-      grid-column: 1 / -1;
-      font-size: 1.2em;
-    }
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
 
-    .overall-grade .score {
-      font-size: 3em;
-    }
+        .setup-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
 
-    .refresh-button {
-      background: #28a745;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      margin: 20px 0;
-      transition: background 0.3s ease;
-    }
+        .setup-section h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
 
-    .refresh-button:hover {
-      background: #218838;
-    }
+        .setup-steps {
+            list-style: none;
+            counter-reset: step-counter;
+        }
 
-    .loading {
-      text-align: center;
-      padding: 40px;
-      color: #666;
-    }
+        .setup-steps li {
+            counter-increment: step-counter;
+            margin-bottom: 15px;
+            padding-left: 30px;
+            position: relative;
+        }
 
-    .loading::after {
-      content: '';
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid #f3f3f3;
-      border-top: 3px solid #0077ff;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-left: 10px;
-    }
+        .setup-steps li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: #4CAF50;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    footer {
-      text-align: center;
-      padding: 20px;
-      margin-top: 50px;
-      color: #888;
-    }
-
-    iframe {
-      width: 100%;
-      height: 600px;
-      border: 2px solid #0077ff;
-      margin-top: 20px;
-      border-radius: 10px;
-    }
-
-    @media (max-width: 768px) {
-      .sidebar {
-        width: 100%;
-        height: auto;
-        flex-direction: row;
-        flex-wrap: wrap;
-        position: static;
-      }
-
-      .main {
-        margin-left: 0;
-      }
-
-      .dashboard-container {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .status-bar {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .slots-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="sidebar">
-    <h1>👨‍💻 MAHEDI</h1>
-    <a onclick="showSection('myInfoSection')">🙋 My Information</a>
-    <a onclick="showSection('assignmentSection')">📝 Assignments</a>
-    <a onclick="showSection('projectSection')">📁 Project 1</a>
-    <a onclick="showSection('project2Section')">📂 Project 2</a>
-    <a onclick="showSection('gradeOverviewSection')">📘 Course Grades</a>
-    <a href="https://open.kakao.com/me/joshteacher" target="_blank">🟡 Communicate with Professor</a>
-    <button class="dark-toggle" onclick="toggleDarkMode()">🌙 Toggle Dark Mode</button>
-  </div>
+    <div class="container">
+        <div class="header">
+            <h1>📅 Calendar Free Time Finder</h1>
+            <p>Discover overlapping free hours across multiple calendars</p>
+        </div>
 
-  <div class="main">
-    <div class="section active" id="info">
-      <h2>Welcome!</h2>
-      <p>Select a menu option from the left to view information.</p>
+        <div class="main-card">
+            <div class="card-header">
+                <h2>Available Time Slots</h2>
+                <p>Common free hours for the current week</p>
+            </div>
+            
+            <div class="card-content">
+                <div id="statusSection" class="status-bar" style="display: none;">
+                    <div class="status-item">
+                        <div class="status-label">Week of</div>
+                        <div id="weekOf" class="status-value">-</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-label">Free Slots</div>
+                        <div id="totalSlots" class="status-value">-</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-label">Last Updated</div>
+                        <div id="lastUpdated" class="status-value">-</div>
+                    </div>
+                </div>
+
+                <div id="loadingSection" class="loading">
+                    <div class="spinner"></div>
+                    <p>Scanning calendars for free time slots...</p>
+                </div>
+
+                <div id="errorSection" class="error" style="display: none;">
+                    <p>Unable to load calendar data. Please check the setup instructions below.</p>
+                </div>
+
+                <div id="slotsContainer" class="slots-grid" style="display: none;"></div>
+
+                <button id="refreshBtn" class="refresh-btn" onclick="loadCalendarData()">
+                    🔄 Refresh Data
+                </button>
+            </div>
+        </div>
+
+        <div class="setup-section">
+            <h3>🛠️ Setup Instructions</h3>
+            <ol class="setup-steps">
+                <li>Copy the Google Apps Script code provided above</li>
+                <li>Go to <a href="https://script.google.com" target="_blank">script.google.com</a> and create a new project</li>
+                <li>Paste the code and replace the CALENDAR_IDS with your actual calendar IDs</li>
+                <li>Save the project and run the <code>manualRun()</code> function to test</li>
+                <li>Deploy as a web app with execute permissions set to "Anyone"</li>
+                <li>Update the <code>SCRIPT_URL</code> in this page with your deployed web app URL</li>
+                <li>Set up the weekly trigger using <code>createWeeklyTrigger()</code> function</li>
+            </ol>
+        </div>
     </div>
 
-    <div class="section" id="myInfoSection">
-      <h2>🙋 My Information</h2>
-      <p><strong>Name:</strong> Kazi Mahedi Hasan</p>
-      <p><strong>Student ID:</strong> 2417551</p>
-    </div>
+    <script>
+        // Replace this URL with your deployed Google Apps Script web app URL
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxAwZSAA156djkS6Iajj9eOKDYROcHy2KjUuERpNwMgCKV8eHzhrBiTEsObckAXeQIA/exec';
+        
+        // Mock data for demonstration purposes
+        const DEMO_DATA = {
+            weekOf: 'Jun 9, 2025',
+            totalFreeSlots: 8,
+            freeSlots: [
+                {
+                    date: 'Jun 9, 2025',
+                    dayOfWeek: 'Monday',
+                    startTime: '10:00 AM',
+                    endTime: '11:00 AM',
+                    duration: '1 hour'
+                },
+                {
+                    date: 'Jun 9, 2025',
+                    dayOfWeek: 'Monday',
+                    startTime: '2:00 PM',
+                    endTime: '3:00 PM',
+                    duration: '1 hour'
+                },
+                {
+                    date: 'Jun 10, 2025',
+                    dayOfWeek: 'Tuesday',
+                    startTime: '9:00 AM',
+                    endTime: '10:00 AM',
+                    duration: '1 hour'
+                },
+                {
+                    date: 'Jun 10, 2025',
+                    dayOfWeek: 'Tuesday',
+                    startTime: '3:00 PM',
+                    endTime: '4:00 PM',
+                    duration: '1 hour'
+                },
+                {
+                    date: 'Jun 11, 2025',
+                    dayOfWeek: 'Wednesday',
+                    startTime: '11:00 AM',
+                    endTime: '12:00 PM',
+                    duration: '1 hour'
+                },
+                {
+                    date: 'Jun 12, 2025',
+                    dayOfWeek: 'Thursday',
+                    startTime: '1:00 PM',
+                    endTime: '2:00 PM',
+                    duration: '1 hour'
+                },
+                {
+                    date: 'Jun 13, 2025',
+                    dayOfWeek: 'Friday',
+                    startTime: '10:00 AM',
+                    endTime: '11:00 AM',
+                    duration: '1 hour'
+                },
+                {
+                    date: 'Jun 13, 2025',
+                    dayOfWeek: 'Friday',
+                    startTime: '4:00 PM',
+                    endTime: '5:00 PM',
+                    duration: '1 hour'
+                }
+            ],
+            lastUpdated: new Date().toISOString()
+        };
 
-    <div class="section" id="assignmentSection">
-      <h2>Submit Your Assignment</h2>
-      <label for="weekSelect"><strong>📅 Select Week:</strong></label>
-      <select id="weekSelect" onchange="showWeek6Site()" style="padding: 8px; width: 200px; margin: 10px 0;">
-        <option value="Week 2">Week 2</option>
-        <option value="Week 4">Week 4</option>
-        <option value="Week 7">Week 7</option>
-        <option value="Week 10">Week 10</option>
-      </select><br>
-      <input type="text" id="driveLink" placeholder="Paste your Google Drive link here" style="width: 80%; padding: 10px;">
-      <button onclick="submitAssignment()" style="padding: 10px 20px; margin-top: 10px;">Submit</button>
+        async function loadCalendarData() {
+            const loadingSection = document.getElementById('loadingSection');
+            const errorSection = document.getElementById('errorSection');
+            const statusSection = document.getElementById('statusSection');
+            const slotsContainer = document.getElementById('slotsContainer');
 
-      <h3 style="margin-top: 30px;">📂 Submitted Assignments</h3>
-      <div id="assignmentList"></div>
-    </div>
+            // Show loading state
+            loadingSection.style.display = 'block';
+            errorSection.style.display = 'none';
+            statusSection.style.display = 'none';
+            slotsContainer.style.display = 'none';
 
-    <div class="section" id="projectSection">
-      <h2>📁 Project 1 – Cryptography</h2>
-      <h3 style="color: deeppink;">💻 Week 6: Cryptography Demo</h3>
-      <iframe src="week6.html"></iframe>
-      <p style="margin-top: 10px;">
-        🔗 <a href="https://drive.google.com/drive/folders/1bm_xtK7aRL7uXjhhUX-nQ86gyrZyOiby?usp=drive_link" target="_blank">
-          View Week 6 Project Google Drive Folder
-        </a>
-      </p>
-    </div>
+            try {
+                let data;
+                
+                // Check if script URL is configured
+                if (SCRIPT_URL === 'YOUR_DEPLOYED_SCRIPT_URL_HERE') {
+                    // Use demo data for demonstration
+                    console.log('Using demo data - please configure SCRIPT_URL');
+                    await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate loading
+                    data = DEMO_DATA;
+                } else {
+                    // Fetch from actual Google Apps Script
+                    const response = await fetch(SCRIPT_URL);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    data = await response.json();
+                }
 
-    <div class="section" id="project2Section">
-      <h2>📂 Project 2</h2>
-      <h3 style="color: #ff6b35;">🚀 Project 2 Demo</h3>
-      <iframe src="project2.html"></iframe>
-      <p style="margin-top: 10px;">
-        🔗 <a href="https://drive.google.com/drive/folders/1L0E5kuN55wGw0OpAKAy1cB4Zho4BMO5z?usp=sharing" target="_blank">
-          View PRD and Documentation Folder
-        </a>
-      </p>
-    </div>
+                if (data.error) {
+                    throw new Error(data.error);
+                }
 
-    <div class="section" id="gradeOverviewSection">
-      <h2>📘 Live Course Grades Dashboard</h2>
-      <p style="margin-bottom: 20px; color: #666;">Live data from your Google Sheet - updates automatically:</p>
-      <iframe 
-        src="https://script.google.com/macros/s/AKfycbw7X3NPCjDVDVB48Hf1lt7DlHuvfB5PS5xMoTE4tZi6E3lX8NIlgy-bMoB-klHyeE7qAw/exec" 
-        style="width: 100%; height: 500px; border: 2px solid #0077ff; border-radius: 10px; background: white;">
-      </iframe>
-    </div>
+                // Hide loading
+                loadingSection.style.display = 'none';
 
-    <footer>
-      📧 Contact: mahedi77990@gmail.com | 🌐 Built with 💙 by MAHEDI
-    </footer>
-  </div>
+                // Update status
+                document.getElementById('weekOf').textContent = data.weekOf;
+                document.getElementById('totalSlots').textContent = data.totalFreeSlots;
+                document.getElementById('lastUpdated').textContent = formatLastUpdated(data.lastUpdated);
+                statusSection.style.display = 'flex';
 
-  <script>
-    const assignmentData = {
-      "Week 2": ["https://docs.google.com/document/d/1wmlghH1QDpuMMgtebZTU9TfC3wZvVvzFFARGAgt7Srs/edit?usp=drive_link"],
-      "Week 4": ["https://drive.google.com/drive/folders/1Uqd4Oh2t5G1sOMFaXTDb1JveJHw7F8Em?usp=drive_link"],
-      "Week 7": ["https://drive.google.com/drive/folders/11Exj3Uipm-dC2w8u7x1NFsXwFakJ8RBB?usp=drive_link"],
-      "Week 10": ["https://drive.google.com/drive/folders/1BqrCuFFHmYK9lsmTcMYATkdDrY8EEG-3?usp=drive_link"]
-    };
+                // Display slots
+                displaySlots(data.freeSlots);
+                slotsContainer.style.display = 'grid';
 
+            } catch (error) {
+                console.error('Error loading calendar data:', error);
+                loadingSection.style.display = 'none';
+                errorSection.style.display = 'block';
+            }
+        }
 
+        function displaySlots(slots) {
+            const container = document.getElementById('slotsContainer');
+            container.innerHTML = '';
 
-    document.addEventListener("DOMContentLoaded", () => {
-      renderAssignmentList();
-    });
+            if (slots.length === 0) {
+                container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">No free slots found for this week.</div>';
+                return;
+            }
 
-    function showSection(id) {
-      document.querySelectorAll(".section").forEach(section => {
-        section.classList.remove("active");
-      });
-      const section = document.getElementById(id);
-      if (section) {
-        section.classList.add("active");
-      }
-    }
+            slots.forEach(slot => {
+                const slotElement = document.createElement('div');
+                slotElement.className = 'slot-card';
+                slotElement.innerHTML = `
+                    <div class="slot-day">${slot.dayOfWeek}</div>
+                    <div class="slot-date">${slot.date}</div>
+                    <div class="slot-time">${slot.startTime} - ${slot.endTime}</div>
+                `;
+                container.appendChild(slotElement);
+            });
+        }
 
-    function toggleDarkMode() {
-      document.body.classList.toggle("dark");
-    }
+        function formatLastUpdated(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+        }
 
-    function renderAssignmentList() {
-      const assignmentList = document.getElementById("assignmentList");
-      assignmentList.innerHTML = "";
-      Object.entries(assignmentData).forEach(([week, links]) => {
-        const container = document.createElement("div");
-        container.innerHTML = `<strong>${week}</strong>:<br>` + links.map(link => `<a href="${link}" target="_blank">${link}</a>`).join("<br>");
-        assignmentList.appendChild(container);
-      });
-    }
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', loadCalendarData);
 
-    function submitAssignment() {
-      const week = document.getElementById("weekSelect").value;
-      const link = document.getElementById("driveLink").value.trim();
-      if (link && assignmentData[week]) {
-        assignmentData[week].push(link);
-        renderAssignmentList();
-        document.getElementById("driveLink").value = "";
-        alert("✅ Assignment submitted!");
-      } else {
-        alert("⚠ Please enter a valid link and select a week.");
-      }
-    }
-
-    function showWeek6Site() {
-      // Reserved for future use
-    }
-
-
-  </script>
+        // Auto-refresh every 5 minutes
+        setInterval(loadCalendarData, 5 * 60 * 1000);
+    </script>
 </body>
 </html>
